@@ -241,3 +241,9 @@ LOGGING = {
 
 
 BASE_URL = "http://localhost:8000"
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_HOST_USER = 'hellman_alert@outlook.com'
+EMAIL_HOST_PASSWORD = 'wonders,1'
+EMAIL_PORT = 25

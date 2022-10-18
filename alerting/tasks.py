@@ -1,4 +1,6 @@
+import json
 
+import requests
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
@@ -48,9 +50,16 @@ def do_action(alert_id: int):
         send_mail(
             subject="Hellman Alert",
             message=alert.subscribe.name,
-            from_email="hellman_alert@outlook.com",
-            auth_user="hellman_alert@outlook.com",
-            auth_password="wonders,1"
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[alert.subscribe.notification_address]
         )
     elif alert.subscribe.notification_type == "discord":
-        pass
+        request_body = {
+            "content": f"Hellman Alert\nName: {alert.subscribe.name}"
+        }
+        headers = {
+            "Content-Type": "application/json"
+        }
+        requests.post(url=alert.subscribe.notification_address, data=json.dumps(request_body), timeout=60)
+
+

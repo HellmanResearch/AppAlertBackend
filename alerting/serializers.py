@@ -83,7 +83,6 @@ class Subscribe(serializers.ModelSerializer):
     class Meta:
         model = l_models.Subscribe
         exclude = ("rule",)
-        fields = "__all__"
 
 
 class Alert(serializers.ModelSerializer):
