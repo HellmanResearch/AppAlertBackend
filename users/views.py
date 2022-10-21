@@ -29,11 +29,11 @@ User = get_user_model()
 logger = logging.getLogger("user")
 
 
-class User(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class User(viewsets.GenericViewSet):
     serializer_class = l_serializers.User
     queryset = l_models.User.objects.all()
 
-    @action(methods=["get"], detail=False, url_path="signature-content")
+    @action(methods=["get"], detail=False, url_path="signature-content", permission_classes=[])
     @dd_decorators.parameter("public_key", str, False, True, default=None)
     def get_signature_content(self, request, public_key, *args, **kwargs):
         # public_key = self.request.query_params.get("public_key")
@@ -43,7 +43,7 @@ class User(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         }
         return Response(data)
 
-    @action(methods=["get"], detail=False, url_path="login-signature")
+    @action(methods=["get"], detail=False, url_path="login-signature", permission_classes=[])
     @dd_decorators.parameter("public_key", str, False, True, default=None)
     @dd_decorators.parameter("signature", str, False, True, default=None)
     def login_signature(self, request, public_key, signature, *args, **kwargs):
@@ -61,9 +61,10 @@ class User(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         if recovered_address.lower() == public_key.lower():
             login(request, user)
             l_object_user.UserObject(user).reset_signature_content()
-            data = {
-                "result": "login successful"
-            }
-            return Response(data)
+            serializer = l_serializers.User(user)
+            # data = {
+            #     "result": "login successful"
+            # }
+            return Response(serializer.data)
         else:
             raise exceptions.ParseError("signature is incorrect")

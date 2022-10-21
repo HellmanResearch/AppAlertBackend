@@ -1,33 +1,23 @@
+import datetime
 import json
+import logging
+import time
 
 import requests
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
 
-
 from celery import shared_task
 from . import models as l_models
 
-
 from prom import models as prom_models
+from . import others as l_others
+from .others.send import send as l_send
+from .others import crate_alert_from_prom_alert as l_crate_alert_from_prom_alert
 
 
-@shared_task
-def update_rules(x, y):
-    return x + y
-
-
-@transaction.atomic
-def crate_alert_from_prom_alert(prom_alert: l_models):
-    subscribes = l_models.Subscribe.objects.filter(rule_id=prom_alert.rule_id)
-    for subscribe in subscribes:
-        l_models.Alert.objects.create(subscribe=subscribe,
-                                      user=subscribe.user,
-                                      metric=subscribe.metric,
-                                      prom_alert_id=prom_alert.id,
-                                      confirmed=False
-                                      )
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -39,27 +29,41 @@ def crate_alert():
 
     prom_alert_qs = prom_models.Alert.objects.filter(id__gt=max_prom_alert_id)
     for prom_alert in prom_alert_qs:
-        crate_alert_from_prom_alert(prom_alert)
+        l_crate_alert_from_prom_alert(prom_alert)
 
 
 @shared_task
 def do_action(alert_id: int):
     alert = l_models.Alert.objects.get(id=alert_id)
-    confirm_url = f"{settings.BASE_URL}/api/v1/alerting/alert/{alert.id}/confirm"
-    if alert.subscribe.notification_type == "email":
-        send_mail(
-            subject="Hellman Alert",
-            message=alert.subscribe.name,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[alert.subscribe.notification_address]
-        )
-    elif alert.subscribe.notification_type == "discord":
-        request_body = {
-            "content": f"Hellman Alert\nName: {alert.subscribe.name}"
-        }
-        headers = {
-            "Content-Type": "application/json"
-        }
-        requests.post(url=alert.subscribe.notification_address, data=json.dumps(request_body), timeout=60)
+    for i in range(3):
+        try:
+            l_send(alert)
+        except Exception as exc:
+            logger.info(f"send failed alert_id: {alert.id} exc: {exc}")
+            time.sleep(20)
+        else:
+            alert.has_sent = True
+            alert.save()
+            logger.info(f"send successful alert_id: {alert_id}")
+            break
 
 
+@shared_task
+def first_action():
+    alert_qs = l_models.Alert.objects.filter(has_sent=False)
+    count = alert_qs.count()
+    logger.info("count waiting to be sent: {}", count)
+    for alert in alert_qs:
+        do_action.delay(alert_id=alert.id)
+
+
+@shared_task
+def no_confirm_reminder():
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(days=3)
+    end_time = now - datetime.timedelta(days=1)
+    alert_qs = l_models.Alert.objects.filter(has_sent=True, create_time__gt=start_time, create_time__lt=end_time)
+    count = alert_qs.count()
+    logger.info("no confirm count: {}", count)
+    for alert in alert_qs:
+        do_action.delay(alert_id=alert.id)

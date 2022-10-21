@@ -17,10 +17,14 @@ class MetricGroup(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.MetricGroup.objects.all()
     serializer_class = l_serializers.MetricGroup
 
+    permission_classes = []
+
 
 class Metric(viewsets.ModelViewSet):
     queryset = l_models.Metric.objects.all()
     serializer_class = l_serializers.Metric
+
+    permission_classes = []
 
 
 # class Rule(viewsets.GenericViewSet):

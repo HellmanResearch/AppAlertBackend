@@ -6,6 +6,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework import permissions
+
+from devops_django import permissions as dd_permissions
 
 
 from . import models as l_models
@@ -26,6 +29,13 @@ class Subscribe(viewsets.ModelViewSet):
     queryset = l_models.Subscribe.objects.all()
     serializer_class = l_serializers.Subscribe
 
+    permission_classes = [permissions.IsAuthenticated,
+                          dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
+
+    def get_object(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
+
     # @transaction.atomic
     # def create(self, request, *args, **kwargs):
     #     response = super().create(request, *args, **kwargs)
@@ -42,6 +52,13 @@ class Subscribe(viewsets.ModelViewSet):
 class Alert(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.Alert.objects.all()
     serializer_class = l_serializers.Alert
+
+    permission_classes = [permissions.IsAuthenticated,
+                          dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
+
+    def get_object(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
     # def create(self, request, *args, **kwargs):
     #     logger.info("received a alert: ", request.data)
