@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'rest_framework',
+    'rest_framework.authtoken',
+    'django_prometheus',
+    'django_celery_results',
     'corsheaders',
     'drf_yasg',
     'devops_django',
@@ -52,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -60,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -266,3 +271,6 @@ EMAIL_PORT = 25
 
 PROM_RULE_FILE = "/tmp/ssv_rules.yml"
 PROM_BASE_URL = "http://192.168.1.128:9090"
+
+CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert",
+CELERY_RESULT_BACKEND = "django-db"

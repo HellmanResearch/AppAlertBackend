@@ -3,14 +3,16 @@ import json
 import logging
 
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
-from rest_framework import mixins
+
+from prometheus_client import Gauge
+
 
 from . import models as l_models
 from . import serializers as l_serializers
 from rest_framework import viewsets
 
 logger = logging.getLogger(__name__)
+count_error_parse_alert = Gauge(name="count_error_parse_alert", documentation="")
 
 
 class MetricGroup(viewsets.ReadOnlyModelViewSet):
@@ -52,5 +54,6 @@ class Alert(viewsets.GenericViewSet):
                 start_at = datetime.datetime.fromisoformat(datetime_str)
                 l_models.Alert.objects.create(rule=rule, start_at=start_at)
             except Exception as exc:
+                count_error_parse_alert.inc()
                 logger.error(f"parse alert to save error alert: {json.dumps(alert)} exc: {exc}")
         return Response({}, 200)

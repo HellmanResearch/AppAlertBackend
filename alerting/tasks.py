@@ -3,16 +3,11 @@ import json
 import logging
 import time
 
-import requests
-from django.db import transaction
-from django.core.mail import send_mail
-from django.conf import settings
 
 from celery import shared_task
 from . import models as l_models
 
 from prom import models as prom_models
-from . import others as l_others
 from .others.send import send as l_send
 from .others import crate_alert_from_prom_alert as l_crate_alert_from_prom_alert
 

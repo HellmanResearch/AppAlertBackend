@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 #     prom_alert = l_models.Alert.objects.get(id=prom_alert_id)
 #     prom_alert
 
-
+@shared_task
 def update_rule():
     rule_qs = l_models.Rule.objects.filter(disabled=False)
     qs = alerting_models.Subscribe.objects.values("rule").distinct()
@@ -35,6 +35,7 @@ def update_rule():
             rule.save()
             disabled_count += 1
     logger.info(f"disabled {disabled_count} rule")
+    update_rule_to_prometheus_and_reload()
 
 
 def update_rule_to_prometheus_and_reload():
