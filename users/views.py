@@ -4,9 +4,6 @@ import logging
 from django.contrib.auth import login, logout
 from django.contrib.auth import get_user_model
 
-from django.conf import settings
-
-from rest_framework.authtoken.models import Token
 
 from web3 import Account
 from eth_account.messages import encode_defunct
@@ -63,16 +60,11 @@ class User(viewsets.GenericViewSet):
 
         if recovered_address.lower() == public_key.lower():
             login(request, user)
-
-            token, is_new = Token.objects.get_or_create(user=user)
-            if settings.ENV != "LOCAL":
-                l_object_user.UserObject(user).reset_signature_content()
+            l_object_user.UserObject(user).reset_signature_content()
             serializer = l_serializers.User(user)
             # data = {
             #     "result": "login successful"
             # }
-            data = serializer.data
-            data["token"] = token.key
-            return Response(data)
+            return Response(serializer.data)
         else:
             raise exceptions.ParseError("signature is incorrect")

@@ -15,6 +15,10 @@ User = get_user_model()
 
 
 class Subscribe(serializers.ModelSerializer):
+    # user = serializers.PrimaryKeyRelatedField(
+    #     read_only=True,
+    #     default=serializers.CurrentUserDefault()
+    # )
 
     @staticmethod
     def c_get_conditions_serializer_cls(fields_attr):
@@ -49,7 +53,7 @@ class Subscribe(serializers.ModelSerializer):
     @transaction.atomic
     def save(self, **kwargs):
         metric = self.validated_data["metric"]
-        template = jinja2.Template(self.validated_data["rule_template"])
+        template = jinja2.Template(self.validated_data["metric"].rule_template)
         try:
             expr = template.render(conditions=self.validated_data["conditions"])
         except Exception as exc:
@@ -83,6 +87,7 @@ class Subscribe(serializers.ModelSerializer):
     class Meta:
         model = l_models.Subscribe
         exclude = ("rule",)
+        read_only_fields = ("user", )
 
 
 class Alert(serializers.ModelSerializer):

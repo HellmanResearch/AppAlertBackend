@@ -36,6 +36,9 @@ class Subscribe(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     # @transaction.atomic
     # def create(self, request, *args, **kwargs):
     #     response = super().create(request, *args, **kwargs)
