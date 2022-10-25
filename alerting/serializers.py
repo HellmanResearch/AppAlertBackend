@@ -15,10 +15,10 @@ User = get_user_model()
 
 
 class Subscribe(serializers.ModelSerializer):
-    # user = serializers.PrimaryKeyRelatedField(
-    #     read_only=True,
-    #     default=serializers.CurrentUserDefault()
-    # )
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
 
     @staticmethod
     def c_get_conditions_serializer_cls(fields_attr):
@@ -87,7 +87,6 @@ class Subscribe(serializers.ModelSerializer):
     class Meta:
         model = l_models.Subscribe
         exclude = ("rule",)
-        read_only_fields = ("user", )
 
 
 class Alert(serializers.ModelSerializer):

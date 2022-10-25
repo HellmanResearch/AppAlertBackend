@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'prom',
     'alerting',
     'data',
+    'c_test',
 ]
 
 MIDDLEWARE = [

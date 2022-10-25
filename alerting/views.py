@@ -32,11 +32,14 @@ class Subscribe(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated,
                           dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
 
-    def get_object(self):
+    def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
     # @transaction.atomic

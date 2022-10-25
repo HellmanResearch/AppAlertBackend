@@ -21,12 +21,18 @@ class MetricGroup(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = []
 
+    class Meta:
+        pass
+
 
 class Metric(viewsets.ModelViewSet):
     queryset = l_models.Metric.objects.all()
     serializer_class = l_serializers.Metric
 
     permission_classes = []
+
+    class Meta:
+        pass
 
 
 # class Rule(viewsets.GenericViewSet):
@@ -57,3 +63,6 @@ class Alert(viewsets.GenericViewSet):
                 count_error_parse_alert.inc()
                 logger.error(f"parse alert to save error alert: {json.dumps(alert)} exc: {exc}")
         return Response({}, 200)
+
+    class Meta:
+        pass
