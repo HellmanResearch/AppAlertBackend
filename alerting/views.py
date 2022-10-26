@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import permissions
+from rest_framework import pagination
 
 from devops_django import permissions as dd_permissions
 
@@ -58,6 +59,8 @@ class Subscribe(viewsets.ModelViewSet):
 class Alert(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.Alert.objects.all()
     serializer_class = l_serializers.Alert
+
+    # pagination_class = pagination.LimitOffsetPagination
 
     permission_classes = [permissions.IsAuthenticated,
                           dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
