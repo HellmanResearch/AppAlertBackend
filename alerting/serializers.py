@@ -90,6 +90,9 @@ class Subscribe(serializers.ModelSerializer):
 
 
 class Alert(serializers.ModelSerializer):
+
+    subscribe__name = serializers.CharField(read_only=True, source="subscribe.name")
+
     class Meta:
         model = l_models.Alert
         fields = "__all__"

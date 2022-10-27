@@ -21,6 +21,8 @@ class MetricGroup(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = []
 
+    ordering_fields = ("id", "crate_time")
+
     class Meta:
         pass
 
@@ -30,6 +32,9 @@ class Metric(viewsets.ModelViewSet):
     serializer_class = l_serializers.Metric
 
     permission_classes = []
+
+    filter_fields = ("group", )
+    ordering_fields = ("id", "crate_time")
 
     class Meta:
         pass

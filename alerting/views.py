@@ -32,6 +32,9 @@ class Subscribe(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated,
                           dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
 
+    filter_fields = ("rule", "metric", "notification_type")
+    ordering_fields = ("id", "crate_time")
+
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
@@ -59,7 +62,8 @@ class Alert(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.Alert.objects.all()
     serializer_class = l_serializers.Alert
 
-    # pagination_class = pagination.LimitOffsetPagination
+    filter_fields = ("confirmed", )
+    ordering_fields = ("id", "crate_time")
 
     permission_classes = [permissions.IsAuthenticated,
                           dd_permissions.generate_user_obj_perm_class(user_filed="user", safe_methods=["OPTIONS"])]
