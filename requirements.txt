@@ -12,3 +12,5 @@ web3==5.30.0
 django-celery-results==2.4.0
 django-cors-headers==3.13.0
 mysqlclient==2.1.1
+django-filter==22.1
+django-prometheus==2.2.0

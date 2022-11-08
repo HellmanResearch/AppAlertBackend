@@ -3,10 +3,14 @@
 import os
 import sys
 
+from AppAlertBackend import project_env
+
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppAlertBackend.settings')
+    # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppAlertBackend.settings')
+    settings = project_env.get_django_settings()
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
