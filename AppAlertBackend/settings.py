@@ -310,5 +310,5 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert",
+CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert"
 CELERY_RESULT_BACKEND = "django-db"
