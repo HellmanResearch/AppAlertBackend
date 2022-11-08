@@ -14,6 +14,7 @@ from devops_django import permissions as dd_permissions
 
 from . import models as l_models
 from . import serializers as l_serializers
+from . import tasks as l_tasks
 
 from .objects.subscribe import SubscribeObject
 
@@ -23,6 +24,21 @@ from prom.objects.rule import RuleObject
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
+
+
+class TestTask(viewsets.ViewSet):
+    permission_classes = [permissions.IsAdminUser]
+
+    def create(self, request, *args, **kwargs):
+        function_name = request.data["function_name"]
+        kwargs = request.data["kwargs"]
+        function = getattr(l_tasks, function_name)
+        function(**kwargs)
+        data = {
+            "results": "ok"
+        }
+        return Response(data)
+
 
 
 class Subscribe(viewsets.ModelViewSet):

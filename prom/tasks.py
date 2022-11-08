@@ -57,10 +57,11 @@ def update_rule_to_prometheus_and_reload():
             "expr": rule.expr,
             "for": "1m"
         }
-        group_map[item.metric.key].append(item)
+        group_map[rule.metric.key].append(item)
         count += 1
 
-    groups = {key: value for key, value in group_map.items()}
+    # groups = {key: value for key, value in group_map.items()}
+    groups = [{"name": key, "rules": value} for key, value in group_map.items()]
     data = {"groups": groups}
     with open(settings.PROM_RULE_FILE, "w") as f:
         yaml.dump(data, f)

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
     'users',
     'rest_framework',
     'corsheaders',
@@ -161,7 +162,7 @@ CORS_ALLOW_HEADERS = (
     'token',
 )
 
-SESSION_COOKIE_AGE = 10
+SESSION_COOKIE_AGE = 86400 * 7
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -286,6 +287,7 @@ EMAIL_PORT = 25
 
 PROM_RULE_FILE = "/tmp/ssv_rules.yml"
 PROM_BASE_URL = "http://192.168.1.128:9090"
+PROM_ADDR = "127.0.0.1"
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -307,3 +309,6 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert",
+CELERY_RESULT_BACKEND = "django-db"

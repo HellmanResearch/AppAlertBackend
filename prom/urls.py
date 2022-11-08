@@ -8,6 +8,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 
 
 # router.register("alerts", viewset=l_views.Alert)
+router.register("test-task", viewset=l_views.TestTask, basename="test-task")
 router.register("metric-groups", viewset=l_views.MetricGroup)
 router.register("metrics", viewset=l_views.Metric)
 router.register("alerts", viewset=l_views.Alert)
