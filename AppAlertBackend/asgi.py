@@ -11,6 +11,10 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppAlertBackend.settings')
+from . settings import project_env
+
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppAlertBackend.settings')
+settings = project_env.get_django_settings()
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings)
 
 application = get_asgi_application()
