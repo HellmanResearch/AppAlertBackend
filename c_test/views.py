@@ -4,9 +4,9 @@ from . import serializers as l_serializers
 from rest_framework import viewsets
 
 
-class User(viewsets.ModelViewSet):
+class TestUser(viewsets.ModelViewSet):
     queryset = l_models.User.objects.all()
-    serializer_class = l_serializers.User
+    serializer_class = l_serializers.TestUser
 
     permission_classes = []
 

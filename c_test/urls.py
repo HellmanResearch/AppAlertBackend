@@ -8,7 +8,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 
 
 # router.register("alerts", viewset=l_views.Alert)
-router.register("users", viewset=l_views.User)
+router.register("users", viewset=l_views.TestUser)
 
 
 urlpatterns = router.urls
