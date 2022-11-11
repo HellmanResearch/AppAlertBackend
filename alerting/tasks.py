@@ -3,6 +3,7 @@ import json
 import logging
 import time
 
+from django.conf import settings
 
 from celery import shared_task
 from . import models as l_models
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def crate_alert():
+def create_alert():
     alert = l_models.Alert.objects.order_by("id").first()
     max_prom_alert_id = 0
     if alert is not None:
@@ -45,10 +46,15 @@ def do_action(alert_id: int):
 
 @shared_task
 def first_action():
-    alert_qs = l_models.Alert.objects.filter(has_sent=False)
+    now = datetime.datetime.now()
+    after_7day = datetime.timedelta(days=7)
+    alert_qs = l_models.Alert.objects.filter(has_sent=False, create_time__gt=after_7day)
     count = alert_qs.count()
     logger.info("count waiting to be sent: {}", count)
     for alert in alert_qs:
+        if settings.ENV == "LOCAL":
+            do_action(alert_id=alert.id)
+            return
         do_action.delay(alert_id=alert.id)
 
 

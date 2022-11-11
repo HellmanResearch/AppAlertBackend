@@ -96,3 +96,10 @@ class Alert(serializers.ModelSerializer):
     class Meta:
         model = l_models.Alert
         fields = "__all__"
+
+
+class ActionTest(serializers.ModelSerializer):
+
+    class Meta:
+        model = l_models.Subscribe
+        fields = ["notification_type", "notification_address"]

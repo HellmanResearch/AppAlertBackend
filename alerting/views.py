@@ -40,7 +40,6 @@ class TestTask(viewsets.ViewSet):
         return Response(data)
 
 
-
 class Subscribe(viewsets.ModelViewSet):
     queryset = l_models.Subscribe.objects.all()
     serializer_class = l_serializers.Subscribe
@@ -60,6 +59,10 @@ class Subscribe(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+    # def c_action_test(self, request, *args, **kwargs):
+    #     serializer = l_serializers.ActionTest(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
 
     # @transaction.atomic
     # def create(self, request, *args, **kwargs):

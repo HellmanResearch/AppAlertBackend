@@ -13,7 +13,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    'crate_alert': {
+    'create_alert': {
         'task': 'alerting.tasks.crate_alert',
         'schedule': 60
     },

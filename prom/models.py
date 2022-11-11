@@ -25,6 +25,9 @@ class Metric(models.Model):
     group = models.ForeignKey(MetricGroup, on_delete=models.CASCADE, related_name="metrics")
     rules_hint = models.TextField()
 
+    query_attr = models.JSONField()
+    query_template = models.TextField()
+
     create_time = models.DateTimeField(auto_now_add=True)
     update_time = models.DateTimeField(auto_now=True)
 
