@@ -103,3 +103,5 @@ class ActionTest(serializers.ModelSerializer):
     class Meta:
         model = l_models.Subscribe
         fields = ["notification_type", "notification_address"]
+
+

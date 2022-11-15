@@ -33,6 +33,11 @@ class User(viewsets.GenericViewSet):
     serializer_class = l_serializers.User
     queryset = l_models.User.objects.all()
 
+    @action(methods=["get"], detail=False, url_path="self")
+    def c_self(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
     @action(methods=["get"], detail=False, url_path="signature-content", permission_classes=[])
     @dd_decorators.parameter("public_key", str, False, True, default=None)
     def get_signature_content(self, request, public_key, *args, **kwargs):

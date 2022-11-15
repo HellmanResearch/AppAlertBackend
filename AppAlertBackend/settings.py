@@ -280,10 +280,14 @@ LOGGING = {
 BASE_URL = "http://localhost:8000"
 
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp-mail.outlook.com'
-EMAIL_HOST_USER = 'hellman_alert@outlook.com'
-EMAIL_HOST_PASSWORD = 'wonders,1'
+EMAIL_HOST = 'mail.hellman.team'
+EMAIL_HOST_USER = 'alert@hellman.team'
+EMAIL_HOST_PASSWORD = 'alert,1'
 EMAIL_PORT = 25
+
+ALIYUN_ACCESS_KEY = "LTAIIa8fg00mDFb5"
+ALIYUN_ACCESS_KEY_SECRET = "pCyn6tFxOcvHV6PcurkDDmB6VERHZa"
+ALIYUN_EMAIL_ACCOUNT_NAME = "alert@starchain.tech"
 
 PROM_RULE_FILE = "/tmp/ssv_rules.yml"
 PROM_BASE_URL = "http://192.168.1.128:9090"

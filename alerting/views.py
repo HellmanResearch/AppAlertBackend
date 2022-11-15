@@ -2,6 +2,8 @@ import logging
 
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.core.signing import Signer
+
 
 from rest_framework import serializers
 from rest_framework import viewsets
@@ -9,12 +11,14 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import pagination
 from rest_framework.decorators import action
+from rest_framework import exceptions
 
 from devops_django import permissions as dd_permissions
 
 from . import models as l_models
 from . import serializers as l_serializers
 from . import tasks as l_tasks
+from .others.send import send as l_send
 
 from .objects.subscribe import SubscribeObject
 
@@ -60,6 +64,32 @@ class Subscribe(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(methods=["post"], detail=True, url_path="action-test")
+    def c_test_send(self, request, *args, **kwargs):
+        serializer = l_serializers.ActionTest(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            l_send(serializer.validated_data["notification_type"],
+                   serializer.validated_data["notification_address"],
+                   0,
+                   "Action Test")
+        except Exception as exc:
+            raise exceptions.ParseError(f"send failed: {exc}")
+        return Response({})
+
+        # from
+
+        # serializer = self.get_serializer(data=request.data)
+        # serializer.is_valid(raise_exception=True)
+        #
+        # l_models.Subscribe.
+
+        # instance = self.get_object()
+        # instance.confirmed = True
+        # instance.save()
+        # serializer = self.get_serializer(instance)
+        # return Response(serializer.data)
+
     # def c_action_test(self, request, *args, **kwargs):
     #     serializer = l_serializers.ActionTest(data=request.data)
     #     serializer.is_valid(raise_exception=True)
@@ -81,7 +111,7 @@ class Alert(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.Alert.objects.all()
     serializer_class = l_serializers.Alert
 
-    filter_fields = ("confirmed", )
+    filter_fields = ("confirmed",)
     ordering_fields = ("id", "crate_time")
 
     permission_classes = [permissions.IsAuthenticated,
@@ -102,6 +132,32 @@ class Alert(viewsets.ReadOnlyModelViewSet):
     @action(methods=["post"], detail=True, url_path="confirm")
     def c_confirm(self, request, *args, **kwargs):
         instance = self.get_object()
+        # if not (request.user and request.user.is_authenticated):
+        #     sign = request.params.get("sign")
+        #     signer = Signer()
+        #     try:
+        #         alert_id_str = signer.unsign(sign)
+        #     except Exception as exc:
+        #         raise exceptions.ParseError("sign error")
+        #     if alert_id_str != str(instance.id):
+        #         exceptions.ParseError("id not match alert and unsigned")
+        instance.confirmed = True
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(methods=["post"], detail=True, permission_classes=[], url_path="confirm-via-sign")
+    def c_confirm_via_sign(self, request, *args, **kwargs):
+        instance = self.get_object()
+        sign = request.params.get("sign")
+        signer = Signer()
+        try:
+            alert_id_str = signer.unsign(sign)
+        except Exception as exc:
+            raise exceptions.ParseError("sign error")
+        if alert_id_str != str(instance.id):
+            exceptions.ParseError("id not match alert and unsigned")
+
         instance.confirmed = True
         instance.save()
         serializer = self.get_serializer(instance)

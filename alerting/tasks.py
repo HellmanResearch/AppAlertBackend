@@ -33,7 +33,10 @@ def do_action(alert_id: int):
     alert = l_models.Alert.objects.get(id=alert_id)
     for i in range(3):
         try:
-            l_send(alert)
+            l_send(alert.subscribe.notification_type,
+                   alert.subscribe.notification_address,
+                   alert.id,
+                   alert.subscribe.name)
         except Exception as exc:
             logger.info(f"send failed alert_id: {alert.id} exc: {exc}")
             time.sleep(20)
@@ -47,14 +50,14 @@ def do_action(alert_id: int):
 @shared_task
 def first_action():
     now = datetime.datetime.now()
-    after_7day = datetime.timedelta(days=7)
+    after_7day = now - datetime.timedelta(days=7)
     alert_qs = l_models.Alert.objects.filter(has_sent=False, create_time__gt=after_7day)
     count = alert_qs.count()
-    logger.info("count waiting to be sent: {}", count)
+    logger.info(f"count waiting to be sent: {count}")
     for alert in alert_qs:
         if settings.ENV == "LOCAL":
             do_action(alert_id=alert.id)
-            return
+            continue
         do_action.delay(alert_id=alert.id)
 
 
