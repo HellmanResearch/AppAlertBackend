@@ -14,7 +14,7 @@ app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
     'create_alert': {
-        'task': 'alerting.tasks.crate_alert',
+        'task': 'alerting.tasks.create_alert',
         'schedule': 60
     },
     'first_action': {
