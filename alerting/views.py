@@ -64,7 +64,7 @@ class Subscribe(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(methods=["post"], detail=True, url_path="action-test")
+    @action(methods=["post"], detail=False, url_path="action-test")
     def c_test_send(self, request, *args, **kwargs):
         serializer = l_serializers.ActionTest(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acknowledge</title>
+</head>
+
+<style>
+    .email-content{
+        width: 80%;
+        height: 100%;
+        margin: 0px auto;
+        background-color: #252632;
+    }
+  .email-content .header-content{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 10px;
+        height: 104px;
+        background-color: #2E304C;
+        font-size: 20px;
+        color: #fff;
+    }
+
+        .email-content.header-content .email_logo{
+            display: block;
+            width: 66px;
+            height: 66px;
+            background: linear-gradient(90deg,#d027fa, #1ba5f8);
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    .email-body{
+        padding: 80px 0px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        }
+    .email-body .item{
+            display: flex;
+            align-items: center;
+            font-size: 30px;
+            color: #fff;
+
+        }
+         .email-body.item.label{
+                color: #898A92;
+                font-size: 14px;
+                margin-right: 6px;
+            }
+        .email-body.item.email-btn{
+            width:400px;
+            margin-top: 20px;
+        }
+.default-btn{
+    font-family: Helvetica-Bold;
+    width: 60%;
+    padding: 12px 40px;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 6px;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    background: linear-gradient(90deg,#d027fa, #1ba5f8);
+    margin-top: 20px;
+
+}
+</style>
+<body>
+      <div class='email-content'>
+        <div class='header-content'>
+          <span class='email_logo'>
+            <img class='logo_img' id="img" style="width:50px" src="https://hellman.team/img/logo.65bf343b.png" />
+          </span>
+          <h3 class='title'>Hellman Alert</h3>
+        </div>
+        <div class='email-body'>
+              <div class='item'>
+                <span class='label'>ID: </span>
+                <span id="value"> {{ id }}</span>
+              </div>
+              <div class='item' style="margin-top: 30px">
+                <span class='label'>Name: </span>
+                <span id="value"> {{ name }}</span>
+              </div>
+              <a link="{{ ack_link }}" style="margin-top: 40px; width: 300px" class="default-btn" id="btn-confirm">Acknowledge</a>
+        </div>
+      </div>
+</body>
+<script >
+</script>
+</html>

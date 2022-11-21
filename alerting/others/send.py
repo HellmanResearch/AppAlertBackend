@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+
 import jinja2
 
 import requests
@@ -30,7 +32,10 @@ def send(to_type, to, id, name):
 
 # send failed raise exception
 def send_to_email(to, id, name, ack_link):
-    html_template = "id: <h2>{{ id }}<h2><br/>name: <h2>{{ name }}<h2><br/>acknowledgeLink: <h2>{{ ack_link }}<h2><br/>"
+    # print(os.getcwd())
+    # html_template = "id: <h2>{{ id }}<h2><br/>name: <h2>{{ name }}<h2><br/>acknowledgeLink: <h2>{{ ack_link }}<h2><br/>"
+    with open("alerting/others/email.html") as f:
+        html_template = f.read()
     template = jinja2.Template(html_template)
     html_message = template.render(id=id, name=name, ack_link=ack_link)
     # message = strip_tags(html_message)

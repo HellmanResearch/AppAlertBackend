@@ -23,6 +23,8 @@ def gen_fields_attr_serializer_cls(fields_attr) -> serializers.Serializer:
 
 class Metric(serializers.ModelSerializer):
 
+    group__name = serializers.CharField(read_only=True, source="group.name")
+
     def validate_fields_attr(self, value):
         for key, filed_attr in value.items():
             serializer = NameFiledMap[filed_attr["type"]].ArgsSerializer(data=filed_attr)

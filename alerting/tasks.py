@@ -66,7 +66,7 @@ def no_confirm_reminder():
     now = datetime.datetime.now()
     start_time = now - datetime.timedelta(days=3)
     end_time = now - datetime.timedelta(days=1)
-    alert_qs = l_models.Alert.objects.filter(has_sent=True, create_time__gt=start_time, create_time__lt=end_time)
+    alert_qs = l_models.Alert.objects.filter(has_sent=True, confirmed=False, create_time__gt=start_time, create_time__lt=end_time)
     count = alert_qs.count()
     logger.info("no confirm count: {}", count)
     for alert in alert_qs:

@@ -1,0 +1,12 @@
+{
+  "address": {
+    "key": "address",
+    "type": "SELECT",
+    "choices": [],
+    "display": "Address",
+    "multiple": false,
+    "is_remote": true,
+    "remote_url": "/api/v1/data/accounts/account-balance-choices",
+    "description": "dsd"
+  }
+}
