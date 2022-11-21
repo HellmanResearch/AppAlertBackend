@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from urllib.parse import quote
 
 import jinja2
 
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 def send(to_type, to, id, name):
     signer = Signer()
     sign = signer.sign(str(id))
-    ack_link = f"{settings.BASE_URL}/alerting/alert/{id}/ack?sign={sign}"
+    name_encoded = quote(name)
+    ack_link = f"{settings.BASE_URL}/confirm/{id}/{sign}?name={name_encoded}"
     if to_type == "email":
         send_to_email(to, id, name, ack_link)
     elif to_type == "discord":
