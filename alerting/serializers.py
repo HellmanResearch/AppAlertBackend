@@ -105,3 +105,6 @@ class ActionTest(serializers.ModelSerializer):
         fields = ["notification_type", "notification_address"]
 
 
+class ConfirmViaSign(serializers.Serializer):
+    sign = serializers.CharField()
+

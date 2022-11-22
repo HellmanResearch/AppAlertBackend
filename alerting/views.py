@@ -149,14 +149,17 @@ class Alert(viewsets.ReadOnlyModelViewSet):
     @action(methods=["post"], detail=True, permission_classes=[], url_path="confirm-via-sign")
     def c_confirm_via_sign(self, request, *args, **kwargs):
         instance = self.get_object()
-        sign = request.params.get("sign")
+        # sign = request.query_params.get("sign")
+        serializer = l_serializers.ConfirmViaSign(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sign = serializer.validated_data["sign"]
         signer = Signer()
         try:
             alert_id_str = signer.unsign(sign)
         except Exception as exc:
             raise exceptions.ParseError("sign error")
         if alert_id_str != str(instance.id):
-            exceptions.ParseError("id not match alert and unsigned")
+            raise exceptions.ParseError("id not match alert and unsigned")
 
         instance.confirmed = True
         instance.save()
