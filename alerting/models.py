@@ -57,4 +57,4 @@ class Alert(models.Model):
     update_time = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = (("subscribe", "prom_alert_id"), )
+        unique_together = (("user", "prom_alert_id"), )
