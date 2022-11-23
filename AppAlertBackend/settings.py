@@ -291,7 +291,7 @@ ALIYUN_EMAIL_ACCOUNT_NAME = "alert@hellman.team"
 
 PROM_RULE_FILE = "/tmp/ssv_rules.yml"
 PROM_BASE_URL = "http://192.168.1.128:9090"
-PROM_ADDR = "192.168.1.128"
+PROM_ADDR = "127.0.0.1"
 
 CORS_ALLOW_METHODS = [
     "DELETE",
