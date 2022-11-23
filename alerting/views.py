@@ -7,6 +7,7 @@ from django.core.signing import Signer
 
 from rest_framework import serializers
 from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import pagination
@@ -148,7 +149,11 @@ class Alert(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=["post"], detail=True, permission_classes=[], url_path="confirm-via-sign")
     def c_confirm_via_sign(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance = super().get_object()
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        id = kwargs[lookup_url_kwarg]
+        instance = get_object_or_404(self.queryset, **{self.lookup_field: id})
+
         # sign = request.query_params.get("sign")
         serializer = l_serializers.ConfirmViaSign(data=request.data)
         serializer.is_valid(raise_exception=True)

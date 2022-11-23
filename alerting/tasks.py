@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def create_alert():
-    alert = l_models.Alert.objects.order_by("id").first()
+    alert = l_models.Alert.objects.order_by("-id").first()
     max_prom_alert_id = 0
     if alert is not None:
         max_prom_alert_id = alert.prom_alert_id
