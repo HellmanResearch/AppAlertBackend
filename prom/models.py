@@ -42,6 +42,9 @@ class Rule(models.Model):
     expr = models.CharField(max_length=255, unique=True, db_index=True)
     disabled = models.BooleanField(default=False)
 
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.expr
 
