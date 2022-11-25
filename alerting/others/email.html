@@ -8,7 +8,7 @@
 </head>
  <style>
       .wrapper {
-        width: 80%;
+        width: 100%;
         }
 
 #outlook a {
@@ -1383,16 +1383,16 @@ body.outlook p {
     }
     .default-btn{
     font-family: Helvetica-Bold;
-    width: 60%;
-    padding: 12px 40px;
-    width: fit-content;
-    height: fit-content;
+    width: 150px;
+    line-height: 50px;
+    display: inline-block;
+    text-align: center;
     border-radius: 6px;
     border: none;
     color: #ffffff !important;
     cursor: pointer;
     background: linear-gradient(90deg,#d027fa, #1ba5f8);
-    margin-top: 20px;
+    margin-bottom: 100px;
 
 }
     </style>
@@ -1403,11 +1403,11 @@ body.outlook p {
     <tr>
       <td class="float-center" align="center" valign="top">
         <center>
-          <table bgcolor="#2E304C" align="center" class="wrapper header float-center">
+          <table bgcolor="#2E304C" align="center" class="container header float-center">
               <tr>
                 <td class="wrapper-inner">
-                  <table align="center" class="container">
-                    <tbody>
+                  <table align="center" style="width:100%">
+                    <tbody >
                       <tr>
                         <td>
                           <table class="row collapse"  bgcolor="#2E304C" color="#fff">
@@ -1416,7 +1416,7 @@ body.outlook p {
                                 <th class="small-6 large-6 columns first" valign="middle">
                                   <table>
                                     <tr>
-                                      <th style="float: right;margin-right: 20px;">
+                                      <th style="float: right;margin-right: 10px;">
                                          <span class='email_logo'>
                                         <img class='logo_img' id="img" style="width:50px" src="https://hellman.team/img/logo.65bf343b.png" />
                                       </span>
@@ -1448,22 +1448,47 @@ body.outlook p {
              <table align="center" bgcolor="#252632" class="container float-center">
               <tbody>
                 <tr>
+
                   <td>
                     <table class="row">
                       <tbody bgcolor="#252632">
                         <tr>
-                          <th class="small-12 large-12 columns first last" style="padding: 60px;">
+                          <th class="small-12 large-12 columns first last" >
                             <table>
                               <tr>
-                                <th>
-                                  <p class="lead">
+                                <th class="small-12" style="padding:0px 5%">
+                                  <p >
+                                    Dear Client {{ user_name }}:
+                                  </p>
+                                  <br />
+                                  <p>
+                                    Thanks for subscribing the Hellman Alerts!
+                                  </p>
+                                  <br />
+                                  <p>
+                                    Alert Nickname: {{ name }}
+                                  </p>
+                                  <p>
+                                      {{ description }}
+                                  </p>
+                                  <p>
+                                    Please “Acknowledge” if you do not need a reminder and “Update” if you wish to modify the criteria.
+                                  </p>
+                                  <br />
+                                  <p>
+                                    Best regards
+                                  </p>
+                                  <p>
+                                    Hellman Team
+                                  </p>
+                                  <!-- <p class="lead">
                                     <span style="color: #898A92;">ID:</span>
-                                    <span>{{ id }}</span>
+                                    <span>9</span>
                                   </p>
                                    <p class="lead">
                                     <span style="color: #898A92;">Name:</span>
-                                    <span>{{ name }}</span>
-                                  </p>
+                                    <span>test</span>
+                                  </p>                            -->
                           </th>
                         </tr>
 
@@ -1477,6 +1502,7 @@ body.outlook p {
                             <tbody>
                               <tr>
                                 <td style="text-align: center; "><a href="{{ ack_link }}"  class="default-btn">Acknowledge</a></td>
+                                <td style="text-align: center; "><a href="{{ update_link }}"  class="default-btn">Update</a></td>
                               </tr>
                             </tbody>
                           </table>

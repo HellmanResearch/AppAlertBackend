@@ -25,6 +25,8 @@ class Metric(models.Model):
     group = models.ForeignKey(MetricGroup, on_delete=models.CASCADE, related_name="metrics")
     rules_hint = models.TextField()
 
+    alert_template = models.TextField()
+
     query_attr = models.JSONField()
     query_template = models.TextField()
 

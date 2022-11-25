@@ -17,29 +17,31 @@ from django.core.signing import Signer
 logger = logging.getLogger(__name__)
 
 
-def send(to_type, to, id, name):
+def send(to_type, to, id, name, description, user_name):
     signer = Signer()
     sign = signer.sign(str(id))
     name_encoded = quote(name)
     ack_link = f"{settings.BASE_URL}/confirm/{id}/{sign}?name={name_encoded}"
+    update_link = f"{settings.BASE_URL}/subscribe/{id}/"
     if to_type == "email":
-        send_to_email(to, id, name, ack_link)
+        send_to_email(to, id, name, ack_link, update_link,  description, user_name)
     elif to_type == "discord":
-        send_to_discord(to, id, name, ack_link)
+        send_to_discord(to, id, name, ack_link, update_link, description, user_name)
     elif to_type == "webhook":
-        send_to_webhook(to, id, name, ack_link)
+        send_to_webhook(to, id, name, ack_link, update_link, description, user_name)
     else:
         raise Exception(f"unknown to_type: {to_type}")
 
 
 # send failed raise exception
-def send_to_email(to, id, name, ack_link):
+def send_to_email(to, id, name, ack_link, update_link, description, user_name):
     # print(os.getcwd())
     # html_template = "id: <h2>{{ id }}<h2><br/>name: <h2>{{ name }}<h2><br/>acknowledgeLink: <h2>{{ ack_link }}<h2><br/>"
     with open("alerting/others/email.html") as f:
         html_template = f.read()
     template = jinja2.Template(html_template)
-    html_message = template.render(id=id, name=name, ack_link=ack_link)
+    html_message = template.render(id=id, name=name, ack_link=ack_link, update_link=update_link,
+                                   description=description, user_name=user_name)
     # message = strip_tags(html_message)
     # send_mail(
     #     subject="Hellman Alert",
@@ -78,8 +80,19 @@ def send_to_email(to, id, name, ack_link):
 
 
 # send failed raise exception
-def send_to_discord(to, id, name, ack_link):
-    content = f"Hellman Alert\nID: {id}\nName: {name}\nAcknowledge Link: {ack_link}"
+def send_to_discord(to, id, name, ack_link, update_link, description, user_name):
+    # content = f"Hellman Alert\nID: {id}\nName: {name}\nAcknowledge Link: {ack_link}"
+    content = f"""Dear Client {user_name},
+Thanks for subscribing the Hellman Alerts!
+Alert ID: {id}
+Alert Nickname: {name}
+{description}
+
+Please 'Acknowledge' if you do not need a reminder and 'Update' if you wish to modify the criteria.
+Acknowledge Link: {ack_link}
+Update Link {update_link}
+Best regards
+Hellman Team"""
     request_body = {
         "content": content
     }
@@ -94,12 +107,15 @@ def send_to_discord(to, id, name, ack_link):
         raise Exception("send to discord error code: {} body:", response.status_code, response.text)
 
 
-def send_to_webhook(to, id, name, ack_link):
+def send_to_webhook(to, id, name, ack_link, update_link, description, user_name):
     request_body = {
         "title": "Hellman Alert",
+        "user_name": user_name,
         "id": id,
         "subscribe_name": name,
-        "acknowledge_link": ack_link
+        "description": description,
+        "acknowledge_link": ack_link,
+        "update_link": update_link
     }
     headers = {
         "Content-Type": "application/json"

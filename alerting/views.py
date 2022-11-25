@@ -60,6 +60,9 @@ class Subscribe(viewsets.ModelViewSet):
         return queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        count = self.get_queryset().count()
+        if count >= self.request.user.max_subscribe:
+            raise exceptions.ParseError(f"Exceeded subscription limit")
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
@@ -73,7 +76,9 @@ class Subscribe(viewsets.ModelViewSet):
             l_send(serializer.validated_data["notification_type"],
                    serializer.validated_data["notification_address"],
                    0,
-                   "Action Test")
+                   "Send Test",
+                   description="XXXX of XXX is lower than XXX !",
+                   user_name="0x000000000000000000000000000000000000000")
         except Exception as exc:
             raise exceptions.ParseError(f"send failed: {exc}")
         return Response({})

@@ -1,0 +1,13 @@
+Dear Client {user_name},
+Thanks for subscribing the Hellman Alerts!
+
+Alert Nickname: {name}
+
+{description}
+
+Please 'Acknowledge' if you do not need a reminder and 'Update' if you wish to modify the criteria.
+
+
+Best regards
+
+Hellman Team

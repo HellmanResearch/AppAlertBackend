@@ -3,6 +3,7 @@ import json
 import logging
 import time
 
+import jinja2
 from django.conf import settings
 
 from celery import shared_task
@@ -31,12 +32,22 @@ def create_alert():
 @shared_task
 def do_action(alert_id: int):
     alert = l_models.Alert.objects.get(id=alert_id)
+
+    description = ""
+    template = jinja2.Template(alert.metric.alert_template)
+    try:
+        description = template.render(conditions=alert.subscribe.conditions)
+    except Exception as exc:
+        logger.error(f"render alert_template error exc: {exc}")
     for i in range(3):
         try:
             l_send(alert.subscribe.notification_type,
                    alert.subscribe.notification_address,
                    alert.id,
-                   alert.subscribe.name)
+                   alert.subscribe.name,
+                   description,
+                   user_name=alert.user.public_key
+                   )
         except Exception as exc:
             logger.info(f"send failed alert_id: {alert.id} exc: {exc}")
             time.sleep(20)
