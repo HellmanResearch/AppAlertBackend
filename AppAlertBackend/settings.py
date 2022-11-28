@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 from . import project_env
@@ -316,3 +317,10 @@ CORS_ALLOW_HEADERS = [
 
 CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert"
 CELERY_RESULT_BACKEND = "django-db"
+
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

@@ -73,3 +73,10 @@ class User(viewsets.GenericViewSet):
             return Response(serializer.data)
         else:
             raise exceptions.ParseError("signature is incorrect")
+
+    @action(methods=["post"], detail=False, url_path="logout")
+    def c_logout(self, request, *args, **kwargs):
+        logout(request)
+        data = {
+        }
+        return Response(data)

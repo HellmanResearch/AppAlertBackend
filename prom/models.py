@@ -30,6 +30,10 @@ class Metric(models.Model):
     query_attr = models.JSONField()
     query_template = models.TextField()
 
+    history_display_name = models.CharField(max_length=30)
+    history_value_map = models.JSONField(blank=True)
+    history_y_unit = models.CharField(max_length=20, blank=True)
+
     create_time = models.DateTimeField(auto_now_add=True)
     update_time = models.DateTimeField(auto_now=True)
 

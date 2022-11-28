@@ -95,17 +95,23 @@ class Metric(viewsets.ModelViewSet):
         data = response.json()
         if len(data["data"]["result"]) != 1:
             raise exceptions.ParseError("data error")
-        return Response(data["data"]["result"][0]["values"])
 
-        # instance = self.get_object()
-        # instance.confirmed = True
-        # instance.save()
-        # serializer = self.get_serializer(instance)
-        # return Response(serializer.data)
+        human_data = []
+        for item in data["data"]["result"][0]["values"]:
+            human_value = object.history_value_map.get(item[1])
+            if human_value is None:
+                human_value = item[1]
+            human_item = [item[0], human_value]
+            human_data.append(human_item)
 
+        ret_data = {
+            "data": data["data"]["result"][0]["values"],
+            "human_data": human_data,
+            "history_value_map": object.history_value_map,
+            "history_y_unit": object.history_y_unit
+        }
 
-# class Rule(viewsets.GenericViewSet):
-#     pass
+        return Response(ret_data)
 
 
 class Alert(viewsets.GenericViewSet):
