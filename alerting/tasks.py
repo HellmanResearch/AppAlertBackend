@@ -30,8 +30,11 @@ def create_alert():
 
 
 @shared_task
-def do_action(alert_id: int):
+def do_action(alert_id: int, is_first_action=False):
     alert = l_models.Alert.objects.get(id=alert_id)
+    if is_first_action:
+        if alert.has_sent is True:
+            return
 
     description = ""
     template = jinja2.Template(alert.metric.alert_template)
@@ -61,15 +64,15 @@ def do_action(alert_id: int):
 @shared_task
 def first_action():
     now = datetime.datetime.now()
-    after_1day = now - datetime.timedelta(days=1)
-    alert_qs = l_models.Alert.objects.filter(has_sent=False, create_time__gt=after_1day)
+    start_time = now - datetime.timedelta(minutes=5)
+    alert_qs = l_models.Alert.objects.filter(has_sent=False, create_time__gt=start_time)
     count = alert_qs.count()
     logger.info(f"count waiting to be sent: {count}")
     for alert in alert_qs:
         if settings.ENV == "LOCAL":
-            do_action(alert_id=alert.id)
+            do_action(alert_id=alert.id, is_first_action=True)
             continue
-        do_action.delay(alert_id=alert.id)
+        do_action.delay(alert_id=alert.id, is_first_action=True)
 
 
 @shared_task

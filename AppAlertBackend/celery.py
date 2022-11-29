@@ -19,7 +19,7 @@ app.conf.beat_schedule = {
     },
     'first_action': {
         'task': 'alerting.tasks.first_action',
-        'schedule': 60
+        'schedule': 60 * 2
     },
     'no_confirm_reminder': {
         'task': 'alerting.tasks.no_confirm_reminder',
