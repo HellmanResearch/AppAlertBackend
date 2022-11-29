@@ -108,7 +108,8 @@ class Metric(viewsets.ModelViewSet):
             "data": data["data"]["result"][0]["values"],
             "human_data": human_data,
             "history_value_map": object.history_value_map,
-            "history_y_unit": object.history_y_unit
+            "history_y_unit": object.history_y_unit,
+            "history_display_name": object.history_display_name
         }
 
         return Response(ret_data)
