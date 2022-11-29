@@ -66,7 +66,7 @@ def send_to_email(to, id, name, ack_link, update_link, description, user_name):
         reply_to_address="false",
         subject="Hellman Alert",
         to_address=to,
-        html_body=html_message
+        html_body=html_message,
     )
     runtime = util_models.RuntimeOptions()
     response = client.single_send_mail_with_options(single_send_mail_request, runtime)
