@@ -60,7 +60,7 @@ class Subscribe(serializers.ModelSerializer):
             raise exceptions.ParseError(f"render template error: {exc}")
         rule, _ = prom_models.Rule.objects.get_or_create(metric=metric, expr=expr)
         try:
-            l_models.Subscribe.objects.get(user=self.validated_data["user"], rule=rule)
+            l_models.Subscribe.objects.get(user=kwargs["user"], rule=rule)
             raise exceptions.ParseError("Duplicate subscribe")
         except l_models.Subscribe.DoesNotExist:
             pass
