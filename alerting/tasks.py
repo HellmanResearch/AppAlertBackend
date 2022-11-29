@@ -14,7 +14,7 @@ from .others.send import send as l_send
 from .others import crate_alert_from_prom_alert as l_crate_alert_from_prom_alert
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("tasks")
 
 
 @shared_task

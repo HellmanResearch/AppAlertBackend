@@ -10,7 +10,7 @@ from . import models as l_models
 from alerting import models as alerting_models
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("tasks")
 
 
 # @shared_task
