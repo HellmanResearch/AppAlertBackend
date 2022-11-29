@@ -39,7 +39,7 @@ class Subscribe(models.Model):
         return self.name
 
     class Meta:
-        unique_together = (("name", "user"), )
+        unique_together = (("name", "user"), ("user", "rule"))
 
 
 class Alert(models.Model):
