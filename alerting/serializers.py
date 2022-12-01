@@ -64,6 +64,8 @@ class Subscribe(serializers.ModelSerializer):
             if self.instance is not None:
                 if self.instance.id != object.id:
                     raise exceptions.ParseError("Duplicate subscribe")
+            else:
+                raise exceptions.ParseError("Duplicate subscribe")
             # raise exceptions.ParseError("Duplicate subscribe")
         except l_models.Subscribe.DoesNotExist:
             pass
