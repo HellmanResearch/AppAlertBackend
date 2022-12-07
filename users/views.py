@@ -3,7 +3,7 @@ import logging
 
 from django.contrib.auth import login, logout
 from django.contrib.auth import get_user_model
-
+from rest_framework.authtoken.models import Token
 
 from web3 import Account
 from eth_account.messages import encode_defunct
@@ -80,3 +80,14 @@ class User(viewsets.GenericViewSet):
         data = {
         }
         return Response(data)
+
+    @action(methods=["get"], detail=False, url_path="token")
+    def c_token(self, request, *args, **kwargs):
+        token = Token.objects.filter(user=request.user).first()
+        if token is None:
+            token = Token.objects.create(user=request.user)
+        data = {
+            "token": token.key
+        }
+        return Response(data)
+
