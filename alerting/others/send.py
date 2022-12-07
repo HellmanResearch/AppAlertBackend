@@ -22,7 +22,7 @@ def send(to_type, to, id, name, description, user_name):
     sign = signer.sign(str(id))
     name_encoded = quote(name)
     ack_link = f"{settings.BASE_URL}/confirm/{id}/{sign}?name={name_encoded}"
-    update_link = f"{settings.BASE_URL}/subscribe/{id}/"
+    update_link = f"{settings.BASE_URL}/subscribe"
     if to_type == "email":
         send_to_email(to, id, name, ack_link, update_link,  description, user_name)
     elif to_type == "discord":
