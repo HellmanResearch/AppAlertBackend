@@ -83,35 +83,6 @@ class Subscribe(viewsets.ModelViewSet):
             raise exceptions.ParseError(f"send failed: {exc}")
         return Response({})
 
-        # from
-
-        # serializer = self.get_serializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        #
-        # l_models.Subscribe.
-
-        # instance = self.get_object()
-        # instance.confirmed = True
-        # instance.save()
-        # serializer = self.get_serializer(instance)
-        # return Response(serializer.data)
-
-    # def c_action_test(self, request, *args, **kwargs):
-    #     serializer = l_serializers.ActionTest(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-
-    # @transaction.atomic
-    # def create(self, request, *args, **kwargs):
-    #     response = super().create(request, *args, **kwargs)
-    #     serializer = self.get_serializer()
-    #     metric = serializer.validated_data["metric"]
-    #     error_info, expr = SubscribeObject(serializer.instance).render_template_to_expr()
-    #     if error_info:
-    #         logger.error(f"rule render error: {error_info}")
-    #         raise Exception("rule render error")
-    #     RuleObject.get_or_crate(metric, expr)
-    #     return response
-
 
 class Alert(viewsets.ReadOnlyModelViewSet):
     queryset = l_models.Alert.objects.all()
@@ -127,26 +98,9 @@ class Alert(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
-    # def create(self, request, *args, **kwargs):
-    #     logger.info("received a alert: ", request.data)
-    #     # serializer = self.get_serializer(data=request.data)
-    #     # serializer.is_valid(raise_exception=True)
-    #     # self.perform_create(serializer)
-    #     # headers = self.get_success_headers(serializer.data)
-    #     return Response({}, 200)
-
     @action(methods=["post"], detail=True, url_path="confirm")
     def c_confirm(self, request, *args, **kwargs):
         instance = self.get_object()
-        # if not (request.user and request.user.is_authenticated):
-        #     sign = request.params.get("sign")
-        #     signer = Signer()
-        #     try:
-        #         alert_id_str = signer.unsign(sign)
-        #     except Exception as exc:
-        #         raise exceptions.ParseError("sign error")
-        #     if alert_id_str != str(instance.id):
-        #         exceptions.ParseError("id not match alert and unsigned")
         instance.confirmed = True
         instance.save()
         serializer = self.get_serializer(instance)
@@ -154,12 +108,11 @@ class Alert(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=["post"], detail=True, permission_classes=[], url_path="confirm-via-sign")
     def c_confirm_via_sign(self, request, *args, **kwargs):
-        instance = super().get_object()
+        # instance = super().get_object()
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         id = kwargs[lookup_url_kwarg]
         instance = get_object_or_404(self.queryset, **{self.lookup_field: id})
 
-        # sign = request.query_params.get("sign")
         serializer = l_serializers.ConfirmViaSign(data=request.data)
         serializer.is_valid(raise_exception=True)
         sign = serializer.validated_data["sign"]

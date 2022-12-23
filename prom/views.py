@@ -126,6 +126,8 @@ class Alert(viewsets.GenericViewSet):
             raise exceptions.PermissionDenied()
         body_content = json.dumps(request.data)
         logger.info(f"received a alert body_content: {body_content}")
+        now = datetime.datetime.now()
+        valid_time = now - datetime.timedelta(days=7)
         for alert in request.data["alerts"]:
             try:
                 if alert["status"] != "firing":
@@ -138,11 +140,12 @@ class Alert(viewsets.GenericViewSet):
                     continue
                 datetime_str = alert["startsAt"].rstrip("Z")
                 start_at = datetime.datetime.fromisoformat(datetime_str)
-                l_models.Alert.objects.create(rule=rule, start_at=start_at)
+                if start_at > valid_time:
+                    l_models.Alert.objects.create(rule=rule, start_at=start_at)
             except Exception as exc:
                 count_error_parse_alert.inc()
                 logger.error(f"parse alert to save error alert: {json.dumps(alert)} exc: {exc}")
         return Response({}, 200)
 
-    class Meta:
-        pass
+    # class Meta:
+    #     pass
