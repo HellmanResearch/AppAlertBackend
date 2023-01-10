@@ -17,6 +17,12 @@ class Account(viewsets.ReadOnlyModelViewSet):
         choices = [[item.public_key, f"{item.public_key} {item.ssv_balance_human} SSV"] for item in account_qs]
         return Response(choices)
 
+    @action(methods=["get"], detail=False, url_path="account-choices", permission_classes=[])
+    def get_account_choices(self, request, *args, **kwargs):
+        account_qs = self.queryset.all()
+        choices = [[item.public_key, item.public_key] for item in account_qs]
+        return Response(choices)
+
 
 class Operator(viewsets.ReadOnlyModelViewSet):
     serializer_class = l_serializers.Operator
