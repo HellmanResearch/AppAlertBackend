@@ -321,3 +321,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "django-static")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Set None if not use proxy
+DISCORD_HTTPS_PROXY = "http://8.210.127.228:1443"
