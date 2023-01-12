@@ -102,7 +102,7 @@ Hellman Team"""
     proxies = None
     if settings.DISCORD_HTTPS_PROXY:
         proxies = {
-            "https": settings.DISCORD_HTTPS_PROXY
+            "https_proxy": settings.DISCORD_HTTPS_PROXY
         }
     response = requests.post(url=to,
                              headers=headers,
