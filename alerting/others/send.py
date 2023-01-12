@@ -99,11 +99,16 @@ Hellman Team"""
     headers = {
         "Content-Type": "application/json"
     }
+    proxies = None
+    if settings.DISCORD_HTTPS_PROXY:
+        proxies = {
+            "https": settings.DISCORD_HTTPS_PROXY
+        }
     response = requests.post(url=to,
                              headers=headers,
                              data=json.dumps(request_body),
                              timeout=60,
-                             proxies=settings.DISCORD_HTTPS_PROXY)
+                             proxies=proxies)
     if response.status_code > 300:
         raise Exception("send to discord error code: {} body:", response.status_code, response.text)
 
