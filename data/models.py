@@ -25,3 +25,12 @@ class Operator(models.Model):
     class Meta:
         db_table = "operator"
 
+
+class Performance(models.Model):
+    operator_id = models.IntegerField()
+    performance = models.FloatField()
+    timestamp = models.IntegerField()
+
+    class Meta:
+        db_table = "performance"
+

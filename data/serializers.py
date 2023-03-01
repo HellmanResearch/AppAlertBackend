@@ -15,3 +15,10 @@ class Operator(serializers.ModelSerializer):
     class Meta:
         model = l_models.Operator
         fields = "__all__"
+
+
+class Performance(serializers.ModelSerializer):
+
+    class Meta:
+        model = l_models.Performance
+        fields = "__all__"

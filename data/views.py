@@ -33,3 +33,11 @@ class Operator(viewsets.ReadOnlyModelViewSet):
         operator_qs = self.queryset.all()
         choices = [[item.id, f"{item.id} | {item.name}"] for item in operator_qs]
         return Response(choices)
+
+
+class Performance(viewsets.ReadOnlyModelViewSet):
+    serializer_class = l_serializers.Performance
+    queryset = l_models.Performance.objects.all()
+
+    filter_fields = ["operator_id"]
+    ordering_fields = ["id", "timestamp"]
