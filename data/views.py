@@ -28,6 +28,8 @@ class Operator(viewsets.ReadOnlyModelViewSet):
     serializer_class = l_serializers.Operator
     queryset = l_models.Operator.objects.all()
 
+    filter_fields = [""]
+
     @action(methods=["get"], detail=False, url_path="operator-choices", permission_classes=[])
     def get_operator_choices(self, request, *args, **kwargs):
         operator_qs = self.queryset.all()

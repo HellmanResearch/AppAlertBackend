@@ -18,6 +18,7 @@ class Operator(models.Model):
     status = models.CharField(max_length=10)
     validator_count = models.IntegerField()
     fee_human = models.FloatField()
+    performance_1day = models.FloatField()
 
     def __str__(self):
         return self.name
