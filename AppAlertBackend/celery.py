@@ -28,5 +28,9 @@ app.conf.beat_schedule = {
     'update_rule': {
         'task': 'prom.tasks.update_rule',
         'schedule': 300
+    },
+    'sync_decided': {
+        'task': 'ssv.tasks.sync_decided',
+        'schedule': 5
     }
 }
