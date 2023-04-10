@@ -64,7 +64,7 @@ def sync_decided():
         with connect(f"{settings.SSV_NODE_WS}/stream") as websocket:
             logger.info("connected")
 
-            while True:
+            for _ in range(2000):
                 message_str = websocket.recv()
                 message_body = json.loads(message_str)
                 for item in message_body["data"]:
