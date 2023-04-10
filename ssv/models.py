@@ -16,6 +16,16 @@ class Decided(models.Model):
 
 
 class OperatorDecided(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    missed = models.BooleanField()
-    create_time = models.DateTimeField(auto_now_add=True, db_index=True)
+    decided_id = models.IntegerField()
+    operator_id = models.IntegerField()
+    height = models.IntegerField()
+    missed = models.BooleanField(db_index=True)
+    time = models.DateTimeField(db_index=True)
+
+    # class Meta:
+    #     unique_together = (("operator_id", "height"), )
+
+
+class Tag(models.Model):
+    key = models.CharField(unique=True, max_length=50)
+    value = models.CharField(max_length=100)

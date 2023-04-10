@@ -26,4 +26,5 @@ class TestUser(viewsets.ModelViewSet):
         html_message = "<h1>HHHHHHH</h1>"
         # send_mail("AAA", "mmm", from_email=settings.EMAIL_HOST_USER, recipient_list=["mingmingtang@aliyun.com"],
         #           html_message=html_message)
+        ssv_tasks.process_decided_to_operator_decided()
         return Response({})
