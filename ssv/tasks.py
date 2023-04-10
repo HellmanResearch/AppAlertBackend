@@ -30,7 +30,7 @@ def sync_decided():
                 message_str = websocket.recv()
                 message_body = json.loads(message_str)
                 for item in message_body["data"]:
-                    validator_public_key = "0x" + message_body["filter"]["publicKey"],
+                    validator_public_key = "0x" + message_body["filter"]["publicKey"]
                     height = item["Message"]["Height"]
                     signers_str = ",".join([str(i) for i in item["Signers"]])
 
