@@ -39,6 +39,6 @@ app.conf.beat_schedule = {
     },
     'sync_validator': {
         'task': 'ssv.tasks.sync_validator',
-        'schedule': 10
+        'schedule': 60
     }
 }
