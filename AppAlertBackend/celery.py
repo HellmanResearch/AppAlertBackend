@@ -36,5 +36,9 @@ app.conf.beat_schedule = {
     'process_decided_to_operator_decided': {
         'task': 'ssv.tasks.process_decided_to_operator_decided',
         'schedule': 20
+    },
+    'sync_validator': {
+        'task': 'ssv.tasks.sync_validator',
+        'schedule': 10
     }
 }
