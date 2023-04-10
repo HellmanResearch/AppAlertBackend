@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from django.core.mail import send_mail
 from django.conf import settings
 
+from ssv import tasks as ssv_tasks
+
 
 class TestUser(viewsets.ModelViewSet):
     queryset = l_models.User.objects.all()
@@ -17,8 +19,8 @@ class TestUser(viewsets.ModelViewSet):
         html_message = "<h1>HHHHHHH</h1>"
         # send_mail("AAA", "mmm", from_email=settings.EMAIL_HOST_USER, recipient_list=["mingmingtang@aliyun.com"],
         #           html_message=html_message)
+        ssv_tasks.sync_decided()
         return Response({})
-
 
     def create(self, request, *args, **kwargs):
         html_message = "<h1>HHHHHHH</h1>"

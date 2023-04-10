@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'prom',
     'alerting',
     'data',
+    'ssv',
     'c_test',
 ]
 
@@ -324,3 +325,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Set None if not use proxy
 DISCORD_HTTPS_PROXY = "http://8.210.127.228:1443"
+
+SSV_NODE_WS = "ws://39.101.65.17:15001"
