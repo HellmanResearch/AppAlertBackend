@@ -332,3 +332,4 @@ SSV_ABI = '[{"inputs":[],"name":"ApprovalNotWithinTimeframe","type":"error"},{"i
 SSV_ADDRESS = "0xAfdb141Dd99b5a101065f40e3D7636262dce65b3"
 SSV_INIT_HEIGHT = 8726650
 ETH_URL = "https://goerli.infura.io/v3/46492c5932f74d2e8104fb2f33729aed"
+CELERY_PROMETHEUS_PORT = 9019

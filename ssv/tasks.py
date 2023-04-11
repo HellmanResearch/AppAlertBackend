@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import traceback
+import prometheus_client
 
 import django.db
 from django.conf import settings
@@ -9,7 +10,7 @@ from django.conf import settings
 from celery import shared_task
 from multiprocessing import Lock
 
-from django.db.models import Max
+from django.db.models import Max, Count
 from websockets.sync.client import connect
 from django.db import IntegrityError
 
@@ -25,22 +26,39 @@ logger = logging.getLogger("tasks")
 sync_decided_lock = Lock()
 process_decided_to_operator_decided_lock = Lock()
 
+metric_operator_performance = prometheus_client.Gauge("operator_performance", "operator performance",
+                                                       ["id"])
+
 
 def get_validator_operators():
-    validator_operators_map = {}
-    operator_validator_list = l_models.OperatorValidator.objects.all()
-    for operator_validator in operator_validator_list:
-        validator_public_key = operator_validator.validator_public_key
-        operator_id_list = validator_operators_map.get(validator_public_key)
-        if operator_id_list is None:
-            operator_id_list = []
-        operator_id_list.append(operator_validator.operator_id)
-        validator_operators_map[validator_public_key] = operator_id_list
+    # validator_operators_map = {}
+
+    validator_qs = l_models.Validator.objects.all()
+    validator_operators_map = {validator.public_key: [operator.id for operator in validator.operators.all()] for
+                               validator in validator_qs}
+    # for validator in validator_qs:
+    #     validator_public_key = validator.public_key
+    #     operator_id_list = validator_operators_map.get(validator_public_key)
+    #     if operator_id_list is None:
+    #         operator_id_list = []
+    #     operator_id_list.append(operator_validator.operator_id)
+    #     validator_operators_map[validator_public_key] = operator_id_list
     return validator_operators_map
 
-        # if operator_validator.validator_public_key not in validator_operators_map.keys():
-        #     validator_operators_map[operator_validator.validator_public_key] = []
-        # validator_operators_map[operator_validator.validator_public_key] = validator_operators_map[operator_validator.validator_public_key] + [operator_validator.operator_id]
+    # validator_operators_map = {}
+    # operator_validator_list = l_models.OperatorValidator.objects.all()
+    # for operator_validator in operator_validator_list:
+    #     validator_public_key = operator_validator.validator_public_key
+    #     operator_id_list = validator_operators_map.get(validator_public_key)
+    #     if operator_id_list is None:
+    #         operator_id_list = []
+    #     operator_id_list.append(operator_validator.operator_id)
+    #     validator_operators_map[validator_public_key] = operator_id_list
+    # return validator_operators_map
+
+    # if operator_validator.validator_public_key not in validator_operators_map.keys():
+    #     validator_operators_map[operator_validator.validator_public_key] = []
+    # validator_operators_map[operator_validator.validator_public_key] = validator_operators_map[operator_validator.validator_public_key] + [operator_validator.operator_id]
 
 
 def get_contract():
@@ -53,6 +71,7 @@ def get_contract():
 def get_last_block_number():
     w3 = Web3(Web3.HTTPProvider(settings.ETH_URL))
     return w3.eth.block_number
+
 
 @shared_task
 def sync_decided():
@@ -129,13 +148,13 @@ def process_decided_to_operator_decided():
                                                             missed=missed,
                                                             time=decided.create_time)
 
-            # for signer in signer_id_list:
-            #     # signer = int(signer_str)
-            #     operator_decided = l_models.OperatorDecided(decided_id=decided.id,
-            #                                                 operator_id=signer,
-            #                                                 height=decided.height,
-            #                                                 missed=False,
-            #                                                 time=decided.create_time)
+                # for signer in signer_id_list:
+                #     # signer = int(signer_str)
+                #     operator_decided = l_models.OperatorDecided(decided_id=decided.id,
+                #                                                 operator_id=signer,
+                #                                                 height=decided.height,
+                #                                                 missed=False,
+                #                                                 time=decided.create_time)
                 operator_decided_list.append(operator_decided)
             l_models.OperatorDecided.objects.bulk_create(operator_decided_list)
         # l_models.Tag.objects.filter(key=last_process_decided_id_key).update(value=new_last_process_decided_id)
@@ -145,36 +164,8 @@ def process_decided_to_operator_decided():
     process_decided_to_operator_decided_lock.release()
 
 
-# @shared_task
-# def sync_operator():
-#     last_sync_operator_key = "last_sync_operator_block_height"
-#     last_sync_operator_block_height = settings.SSV_INIT_HEIGHT
-#     try:
-#         tag = l_models.Tag.objects.get(key=last_sync_operator_key)
-#         last_sync_operator_block_height = int(tag.value)
-#     except l_models.Tag.DoesNotExist as exc:
-#         l_models.Tag.objects.create(key=last_sync_operator_key, value=str(settings.SSV_INIT_HEIGHT))
-#     last_block_number = l_others.contract.get_last_block_number()
-#     end_last_sync_operator_block_height = last_sync_operator_block_height + 10000
-#     if end_last_sync_operator_block_height > last_block_number:
-#         end_last_sync_operator_block_height = last_block_number
-#     contract = l_others.contract.get_contract()
-#     event_filter = contract.events.ValidatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
-#                                                                 toBlock=end_last_sync_operator_block_height)
-#     entries = event_filter.get_all_entries()
-#     for event in entries:
-#         try:
-#             l_models.Account.objects.create(public_key=event["args"]["owner"])
-#         except l_models.Account.DoesNotExist:
-#             pass
-#         try:
-#             l_models.Operator.objects.create(public_key=event["args"]["owner"])
-#         except l_models.Account.DoesNotExist:
-#             pass
-
-
 @shared_task
-def sync_validator():
+def sync_operator():
     last_sync_operator_key = "last_sync_operator_block_height"
     last_sync_operator_block_height = settings.SSV_INIT_HEIGHT
     try:
@@ -187,14 +178,105 @@ def sync_validator():
     if end_last_sync_operator_block_height > last_block_number:
         end_last_sync_operator_block_height = last_block_number
     contract = get_contract()
-    event_filter = contract.events.ValidatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
-                                                                toBlock=end_last_sync_operator_block_height)
+    event_filter = contract.events.OperatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
+                                                               toBlock=end_last_sync_operator_block_height)
     entries = event_filter.get_all_entries()
     for event in entries:
-        for operator_id in event["args"]["operatorIds"]:
-            try:
-                validator_public_key = "0x" + event["args"]["publicKey"].hex()
-                l_models.OperatorValidator.objects.create(validator_public_key=validator_public_key, operator_id=operator_id)
-            except IntegrityError:
-                pass
+        try:
+            owner_address = event["args"]["owner"]
+            operator_id = event["args"]["operatorId"]
+            l_models.Account.objects.get_or_create(address=owner_address)
+            # l_models.Account.objects.create(public_key=event["args"]["owner"])
+            l_models.Operator.objects.get_or_create(id=operator_id)
+        except Exception as exc:
+            logger.error(f"add operator error exc: {exc}")
+        #
+        # try:
+        #     l_models.Operator.objects.create(public_key=event["args"]["owner"])
+        # except l_models.Account.DoesNotExist:
+        #     pass
     l_models.Tag.objects.filter(key=last_sync_operator_key).update(value=str(end_last_sync_operator_block_height))
+
+
+@shared_task
+def sync_validator():
+    last_sync_validator_key = "last_sync_validator_block_height"
+    last_sync_validator_block_height = settings.SSV_INIT_HEIGHT
+    try:
+        tag = l_models.Tag.objects.get(key=last_sync_validator_key)
+        last_sync_validator_block_height = int(tag.value)
+    except l_models.Tag.DoesNotExist as exc:
+        l_models.Tag.objects.create(key=last_sync_validator_key, value=str(settings.SSV_INIT_HEIGHT))
+    last_block_number = get_last_block_number()
+    end_last_sync_validator_block_height = last_sync_validator_block_height + 10000
+    if end_last_sync_validator_block_height > last_block_number:
+        end_last_sync_validator_block_height = last_block_number
+    contract = get_contract()
+    event_filter = contract.events.ValidatorAdded.create_filter(fromBlock=last_sync_validator_block_height,
+                                                                toBlock=end_last_sync_validator_block_height)
+    entries = event_filter.get_all_entries()
+    for event in entries:
+        operator_list = []
+        validator_public_key = "0x" + event["args"]["publicKey"].hex()
+        owner_address = event["args"]["owner"]
+
+        l_models.Account.objects.get_or_create(address=owner_address)
+
+        for operator_id in event["args"]["operatorIds"]:
+            operator, is_new = l_models.Operator.objects.get_or_create(id=operator_id)
+            operator_list.append(operator)
+        validator, is_new = l_models.Validator.objects.get_or_create(public_key=validator_public_key)
+        validator.owner_address = owner_address
+        validator.operators.set(operator_list)
+        # print("entries: ", entries)
+        # try:
+        #     operator_list = []
+        #     validator_public_key = "0x" + event["args"]["publicKey"].hex()
+        #     owner_address = event["args"]["owner"]
+        #
+        #     l_models.Account.objects.get_or_create(address=owner_address)
+        #
+        #     for operator_id in event["args"]["operatorIds"]:
+        #         operator, is_new = l_models.Operator.objects.get_or_create(id=operator_id)
+        #         operator_list.append(operator)
+        #     validator, is_new = l_models.Validator.objects.get_or_create(public_key=validator_public_key)
+        #     validator.owner_address = owner_address
+        #     validator.operators.set(operator_list)
+        # except Exception as exc:
+        #     # print(traceback.format_exc())
+        #     logger.error(f"add validator error exc: {exc}")
+
+    l_models.Tag.objects.filter(key=last_sync_validator_key).update(value=str(end_last_sync_validator_block_height))
+
+
+@shared_task
+def update_performance():
+    now = datetime.datetime.now()
+    before_one_day = now - datetime.timedelta(days=1)
+    decided_qs = l_models.OperatorDecided.objects.filter(time__gte=before_one_day)
+    total_decided_qs = decided_qs.values("operator_id").annotate(count=Count("id"))
+    not_missed_decided_qs = decided_qs.filter(missed=False).values("operator_id").annotate(count=Count("id"))
+
+    total_decided_map = {item["operator_id"]: item["count"] for item in total_decided_qs}
+    not_missed_decided_map = {item["operator_id"]: item["count"] for item in not_missed_decided_qs}
+
+    for operator in l_models.Operator.objects.all():
+        total_decided = total_decided_map.get(operator.id)
+        not_missed_decided = not_missed_decided_map.get(operator.id)
+        if not_missed_decided is None:
+            not_missed_decided = 0
+
+        performance = 0
+        if total_decided is not None:
+            performance = (not_missed_decided / total_decided) * 100
+        operator.performance_1day = performance
+        metric_operator_performance.labels(id=operator.id).set(performance)
+        operator.save()
+
+
+@shared_task
+def delete_decided():
+    now = datetime.datetime.now()
+    before_one_day = now - datetime.timedelta(days=1)
+    l_models.Decided.objects.filter(create_time__lte=before_one_day).delete()
+    l_models.OperatorDecided.objects.filter(time__lte=before_one_day).delete()
