@@ -75,6 +75,7 @@ def get_last_block_number():
 
 @shared_task
 def sync_decided():
+    logger.info("in sync_decided")
     is_got = sync_decided_lock.acquire(timeout=1)
     if is_got is False:
         return
@@ -271,6 +272,7 @@ def update_performance():
             performance = (not_missed_decided / total_decided) * 100
         operator.performance_1day = performance
         metric_operator_performance.labels(id=operator.id).set(performance)
+        logger.info(f"set operator: {operator.id} performance is {performance}")
         operator.save()
 
 
