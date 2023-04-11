@@ -24,22 +24,22 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    # 'create_alert': {
-    #     'task': 'alerting.tasks.create_alert',
-    #     'schedule': 60
-    # },
-    # 'first_action': {
-    #     'task': 'alerting.tasks.first_action',
-    #     'schedule': 60 * 2
-    # },
-    # 'no_confirm_reminder': {
-    #     'task': 'alerting.tasks.no_confirm_reminder',
-    #     'schedule': 86400
-    # },
-    # 'update_rule': {
-    #     'task': 'prom.tasks.update_rule',
-    #     'schedule': 300
-    # },
+    'create_alert': {
+        'task': 'alerting.tasks.create_alert',
+        'schedule': 60
+    },
+    'first_action': {
+        'task': 'alerting.tasks.first_action',
+        'schedule': 60 * 2
+    },
+    'no_confirm_reminder': {
+        'task': 'alerting.tasks.no_confirm_reminder',
+        'schedule': 86400
+    },
+    'update_rule': {
+        'task': 'prom.tasks.update_rule',
+        'schedule': 300
+    },
     'sync_decided': {
         'task': 'ssv.tasks.sync_decided',
         'schedule': 5
