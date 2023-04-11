@@ -26,7 +26,7 @@ logger = logging.getLogger("tasks")
 sync_decided_lock = Lock()
 process_decided_to_operator_decided_lock = Lock()
 
-metric_operator_performance_1day = prometheus_client.Gauge("metric_operator_performance_1day",
+metric_operator_performance_1day = prometheus_client.Gauge("operator_performance_1day",
                                                            "operator performance 1 day", ["id"])
 
 
