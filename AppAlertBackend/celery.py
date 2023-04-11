@@ -6,9 +6,9 @@ import wsgiserver
 
 from django.conf import settings
 from celery import Celery
-from celery.schedules import crontab
-from prometheus_client import multiprocess
-from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Gauge, Counter
+# from celery.schedules import crontab
+# from prometheus_client import multiprocess
+# from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Gauge, Counter
 
 from . import project_env
 
@@ -67,44 +67,44 @@ app.conf.beat_schedule = {
 }
 
 
-def metrics(environ, start_response):
-    registry = CollectorRegistry()
-    multiprocess.MultiProcessCollector(registry)
-    data = generate_latest(registry)
-    # return Response(data, mimetype=CONTENT_TYPE_LATEST)
-
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/html; charset=utf-8')]
-    start_response(status, response_headers)
-    return [data]
-
-
-def start_server():
-    server = wsgiserver.WSGIServer(metrics, host="0.0.0.0", port=settings.CELERY_PROMETHEUS_PORT)
-    server.start()
+# def metrics(environ, start_response):
+#     registry = CollectorRegistry()
+#     # multiprocess.MultiProcessCollector(registry)
+#     data = generate_latest(registry)
+#     # return Response(data, mimetype=CONTENT_TYPE_LATEST)
+#
+#     status = '200 OK'
+#     response_headers = [('Content-type', 'text/html; charset=utf-8')]
+#     start_response(status, response_headers)
+#     return [data]
 
 
-class PrometheusServer(threading.Thread):
+# def start_server():
+#     server = wsgiserver.WSGIServer(metrics, host="0.0.0.0", port=settings.CELERY_PROMETHEUS_PORT)
+#     server.start()
 
-    def metrics(self, environ, start_response):
-        print("metricsmetricsmetricsmetricsmetrics")
-        logger.info("metricsmetricsmetricsmetricsmetrics")
-        try:
-            registry = CollectorRegistry()
-            multiprocess.MultiProcessCollector(registry)
-            data = generate_latest(registry)
-            # return Response(data, mimetype=CONTENT_TYPE_LATEST)
 
-            status = '200 OK'
-            response_headers = [('Content-type', CONTENT_TYPE_LATEST), ('Content-Length', str(len(data)))]
-            start_response(status, response_headers)
-            return [data]
-        except Exception as exc:
-            logger.warning(f"get metrics error exc: {exc}")
-
-    def run(self) -> None:
-        server = wsgiserver.WSGIServer(self.metrics, host="0.0.0.0", port=settings.CELERY_PROMETHEUS_PORT)
-        server.start()
+# class PrometheusServer(threading.Thread):
+#
+#     def metrics(self, environ, start_response):
+#         print("metricsmetricsmetricsmetricsmetrics")
+#         logger.info("metricsmetricsmetricsmetricsmetrics")
+#         try:
+#             registry = CollectorRegistry()
+#             multiprocess.MultiProcessCollector(registry)
+#             data = generate_latest(registry)
+#             # return Response(data, mimetype=CONTENT_TYPE_LATEST)
+#
+#             status = '200 OK'
+#             response_headers = [('Content-type', CONTENT_TYPE_LATEST), ('Content-Length', str(len(data)))]
+#             start_response(status, response_headers)
+#             return [data]
+#         except Exception as exc:
+#             logger.warning(f"get metrics error exc: {exc}")
+#
+#     def run(self) -> None:
+#         server = wsgiserver.WSGIServer(self.metrics, host="0.0.0.0", port=settings.CELERY_PROMETHEUS_PORT)
+#         server.start()
 
 
 # IS_CELERY = os.getenv("IS_CELERY")
