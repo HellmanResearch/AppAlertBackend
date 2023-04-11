@@ -26,8 +26,8 @@ logger = logging.getLogger("tasks")
 sync_decided_lock = Lock()
 process_decided_to_operator_decided_lock = Lock()
 
-metric_operator_performance = prometheus_client.Gauge("operator_performance", "operator performance",
-                                                       ["id"])
+metric_operator_performance_1day = prometheus_client.Gauge("metric_operator_performance_1day",
+                                                           "operator performance 1 day", ["id"])
 
 
 def get_validator_operators():
@@ -271,7 +271,7 @@ def update_performance():
         if total_decided is not None:
             performance = (not_missed_decided / total_decided) * 100
         operator.performance_1day = performance
-        metric_operator_performance.labels(id=operator.id).set(performance)
+        metric_operator_performance_1day.labels(id=operator.id).set(performance)
         logger.info(f"set operator: {operator.id} performance is {performance}")
         operator.save()
 
