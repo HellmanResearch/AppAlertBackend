@@ -59,53 +59,7 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%a, %d %b %Y %H:%M:%S',
                     filemode='a')
 
-icp_balance = prometheus_client.Gauge("dfinity_icp_balance", "Balance of ICP of Dfinity",
-                                      ["account_name"])
 
-logger = logging.getLogger("cycles_exporter")
-ENV = os.getenv("ENV")
-
-network = "ic"
-project_path = "/Users/mmt/local/dfinity_project"
-if ENV == "PRO":
-    project_path = "/home/ops/local/WICP"
-
-
-class Dfinity:
-    decimals = 8
-    decimals_dividend = 1e8
-
-    def __init__(self, network, project_path):
-        self.network = network
-        self.project_path = project_path
-        self.transaction_fee = 10000
-
-    def run_cmd(self, cmd, timeout):
-        cmd = f"cd {self.project_path};{cmd}"
-        logger.info(f"run cmd: {cmd}")
-
-        # if ENV == "LOCAL":
-        #     if random.random() > 0.8:
-        #         raise Exception("")
-        #     return '(opt principal "jwaqi-eqaaa-aaaah-qco4q-cai")\n'
-
-        start_time = datetime.datetime.now()
-        try:
-            cp = subprocess.run(cmd, shell=True, encoding="utf-8", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                timeout=timeout)
-        except subprocess.TimeoutExpired as exc:
-            raise TimeoutError(f"timeout ({timeout}s)")
-        end_time = datetime.datetime.now()
-        time_cost = (end_time - start_time).total_seconds()
-        logger.info(
-            f"cmd run completed  time_cost: {time_cost} cmd: {cmd} returncode: {cp.returncode} stdout: {cp.stdout}, stderr: {cp.stderr}")
-        if cp.returncode != 0:
-            err_msg = f"run cmd: {cmd} failed, stdout: {cp.stdout} stderr: {cp.stderr}"
-            raise Exception(err_msg)
-        return cp.stdout
-
-
-dfinity = Dfinity("ic", project_path)
 
 
 def update_icp_balance():
@@ -126,7 +80,7 @@ def update_icp_balance():
 
 
 if __name__ == '__main__':
-    prometheus_client.start_http_server(9118)
+    prometheus_client.start_http_server(9121)
     logger.info("started")
     while True:
         try:
