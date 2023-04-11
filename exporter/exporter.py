@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -11,33 +12,31 @@ sys.path.append(BASE_DIR)
 
 from AppAlertBackend import project_env
 
-project_env.set_django_settings_env()
-django.setup()
+# project_env.set_django_settings_env()
+
 
 import os
 
-ENV_CHOICES = ("LOCAL", "DEV", "FAT", "UAT", "PT", "PRO")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP_NAME = BASE_DIR.rsplit("/", 1)[-1]
+ENV_CHOICES = ("LOCAL", "DEV", "FAT", "UAT", "PT", "PRO")
+
+
 ENV = os.environ.get("ENV", "LOCAL")
 if ENV not in ENV_CHOICES:
     raise Exception(f"非法环境变量ENV: {ENV}")
-
-
-def set_django_settings_env():
-    if ENV == "LOCAL":
-        settings = "{}.settings".format(APP_NAME)
-    else:
-        if ENV not in ENV_CHOICES:
-            raise Exception(f"环境变量ENV必须为{ENV_CHOICES}")
-        settings = f"{APP_NAME}.settings_{ENV.lower()}"
-    print(f"settings: {settings}")
-    os.environ["DJANGO_SETTINGS_MODULE"] = settings
-
+if ENV == "LOCAL":
+    settings = "{}.settings".format(APP_NAME)
+else:
+    if ENV not in ENV_CHOICES:
+        raise Exception(f"环境变量ENV必须为{ENV_CHOICES}")
+    settings = f"{APP_NAME}.settings_{ENV.lower()}"
+print(f"settings: {settings}")
+os.environ["DJANGO_SETTINGS_MODULE"] = settings
+django.setup()
 
 from ssv import models as ssv_models
 
-#!/usr/bin/env python3
 
 import os
 import json
@@ -60,35 +59,23 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode='a')
 
 
+metric_operator_performance_1day = prometheus_client.Gauge("operator_performance_1day",
+                                                           "operator performance 1 day", ["id"])
 
 
-def update_icp_balance():
-    cmd = "dfx identity list"
-    stdout = dfinity.run_cmd(cmd, timeout=10)
-    account_name_list = stdout.split("\n")
-    withdraw_account_name_list = [item for item in account_name_list if item.startswith("withdraw_")]
-
-    for withdraw_account_name in withdraw_account_name_list:
-        try:
-            cmd = f"dfx --identity {withdraw_account_name} ledger --network ic balance"
-            stdout = dfinity.run_cmd(cmd, timeout=60)
-            value = stdout.split(" ICP")[0]
-            value = float(value)
-            icp_balance.labels(withdraw_account_name).set(value)
-        except Exception as exc:
-            print(exc)
+def update_performance():
+    operator_qs = ssv_models.Operator.objects.all()
+    for operator in operator_qs:
+        metric_operator_performance_1day.labels(id=operator.id).set(operator.performance_1day)
 
 
 if __name__ == '__main__':
     prometheus_client.start_http_server(9121)
-    logger.info("started")
+    logging.info("started")
     while True:
         try:
-            update_icp_balance()
+            update_performance()
         except Exception as exc:
-            logger.warning(traceback.format_exc())
-
-        logger.info("Round end")
-        if ENV == "LOCAL":
-            continue
-        time.sleep(60 * 1)
+            logging.warning(traceback.format_exc())
+        logging.info("Round end")
+        time.sleep(60 * 2)
