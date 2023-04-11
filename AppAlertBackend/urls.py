@@ -43,6 +43,7 @@ def return_static(request, path, insecure=True, **kwargs):
 urlpatterns = [
     re_path(r'^static/(?P<path>.*)$', return_static, name='static'),
     path('admin/', admin.site.urls),
+    path('api/v1/ssv/', include('ssv.urls')),
     path('api/v1/alerting/', include('alerting.urls')),
     path('api/v1/engine/', include('prom.urls')),
     path('api/v1/data/', include('data.urls')),
