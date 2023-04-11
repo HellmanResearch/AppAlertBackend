@@ -107,16 +107,16 @@ class PrometheusServer(threading.Thread):
         server.start()
 
 
-IS_CELERY = os.getenv("IS_CELERY")
-print(f"IS_CELERY: {IS_CELERY}")
-logger.info(f"IS_CELERY: {IS_CELERY}")
-print(f"port: {settings.CELERY_PROMETHEUS_PORT}")
+# IS_CELERY = os.getenv("IS_CELERY")
+# print(f"IS_CELERY: {IS_CELERY}")
+# logger.info(f"IS_CELERY: {IS_CELERY}")
+# print(f"port: {settings.CELERY_PROMETHEUS_PORT}")
 
 # prometheus_server = PrometheusServer()
 # prometheus_server.start()
 # print("prometheus_server start completed")
 
-if os.getenv("IS_CELERY"):
-    prometheus_server = PrometheusServer()
-    prometheus_server.start()
-    print("prometheus_server start completed")
+# if os.getenv("IS_CELERY"):
+#     prometheus_server = PrometheusServer()
+#     prometheus_server.start()
+#     print("prometheus_server start completed")
