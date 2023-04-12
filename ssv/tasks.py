@@ -86,7 +86,6 @@ def sync_decided():
 
             for _ in range(2000):
                 message_str = websocket.recv()
-                logger.info(f"got a message: {message_str}")
                 message_body = json.loads(message_str)
                 for item in message_body["data"]:
                     validator_public_key = "0x" + message_body["filter"]["publicKey"]
