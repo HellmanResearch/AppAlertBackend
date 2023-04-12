@@ -10,7 +10,7 @@ from django.conf import settings
 from celery import shared_task
 from multiprocessing import Lock
 
-from django.db.models import Max, Count
+from django.db.models import Max, Count, Min
 from websockets.sync.client import connect
 from django.db import IntegrityError
 
@@ -130,6 +130,10 @@ def process_decided_to_operator_decided():
         if result["decided_id__max"] is not None:
             last_process_decided_id = result["decided_id__max"]
         new_last_process_decided_id = last_process_decided_id + 10000
+
+        min_result = l_models.Decided.objects.filter(id__gte=last_process_decided_id).aggregate(Min("id"))
+        if min_result["id__min"] > new_last_process_decided_id:
+            new_last_process_decided_id = min_result["id__min"] + 10000
         now = datetime.datetime.now()
         limit_time = now - datetime.timedelta(minutes=10)
         decided_qs = l_models.Decided.objects.filter(id__gte=last_process_decided_id,
