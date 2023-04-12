@@ -84,6 +84,7 @@ class Metric(viewsets.ModelViewSet):
             "step": step
         }
         url = f"{settings.PROM_BASE_URL}/api/v1/query_range"
+        logger.info(f"url: {url}")
         try:
             response = requests.get(url, params=params, timeout=10)
         except Exception as exc:
