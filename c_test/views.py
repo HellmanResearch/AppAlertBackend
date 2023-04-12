@@ -21,7 +21,7 @@ class TestUser(viewsets.ModelViewSet):
         #           html_message=html_message)
         # ssv_tasks.sync_operator()
         # ssv_tasks.sync_operator()
-        ssv_tasks.sync_decided()
+        ssv_tasks.process_decided_to_operator_decided()
         return Response({})
 
     def create(self, request, *args, **kwargs):

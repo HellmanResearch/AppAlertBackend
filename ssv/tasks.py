@@ -150,7 +150,7 @@ def process_decided_to_operator_decided():
             # missed_operator_id_list = set(operator_id_list) - set(signer_id_list)
             # logger.warning("")
             for operator_id in operator_id_list:
-                missed = operator_id in signer_id_list
+                missed = operator_id not in signer_id_list
                 operator_decided = l_models.OperatorDecided(decided_id=decided.id,
                                                             operator_id=operator_id,
                                                             height=decided.height,
