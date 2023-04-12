@@ -104,8 +104,10 @@ def sync_decided():
                                                         height=height,
                                                         signers=signers_str)
     except Exception as exc:
+        sync_decided_lock.release()
         logger.warning(f"sync decided error exc: {exc}")
-    sync_decided_lock.release()
+    else:
+        sync_decided_lock.release()
 
 
 @shared_task
@@ -133,7 +135,7 @@ def process_decided_to_operator_decided():
         decided_qs = l_models.Decided.objects.filter(id__gte=last_process_decided_id,
                                                      id__lt=new_last_process_decided_id,
                                                      create_time__lte=limit_time)
-        logger.info(f"decided_qs.count: {decided_qs.count()}")
+        logger.info(f"decided_qs.count: {decided_qs.count()} last_process_decided_id: {last_process_decided_id} new_last_process_decided_id: {new_last_process_decided_id} limit_time: {limit_time}")
         for decided in decided_qs:
             operator_decided_list = []
             operator_id_list = validator_operators_map.get(decided.validator_public_key)
@@ -163,8 +165,10 @@ def process_decided_to_operator_decided():
             l_models.OperatorDecided.objects.bulk_create(operator_decided_list)
         # l_models.Tag.objects.filter(key=last_process_decided_id_key).update(value=new_last_process_decided_id)
     except Exception as exc:
+        process_decided_to_operator_decided_lock.release()
         logger.warning(f"process_decided_to_operator_decided error exc: {exc}")
-    process_decided_to_operator_decided_lock.release()
+    else:
+        process_decided_to_operator_decided_lock.release()
 
 
 @shared_task
