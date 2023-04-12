@@ -109,6 +109,7 @@ def sync_decided():
 
 @shared_task
 def process_decided_to_operator_decided():
+    logger.info("in process_decided_to_operator_decided")
     is_got = process_decided_to_operator_decided_lock.acquire(timeout=1)
     if is_got is False:
         return
@@ -161,7 +162,7 @@ def process_decided_to_operator_decided():
         # l_models.Tag.objects.filter(key=last_process_decided_id_key).update(value=new_last_process_decided_id)
     except Exception as exc:
         print(traceback.format_exc())
-        logging.warning(f"process_decided_to_operator_decided error exc: {exc}")
+        logger.warning(f"process_decided_to_operator_decided error exc: {exc}")
     process_decided_to_operator_decided_lock.release()
 
 
@@ -272,7 +273,7 @@ def update_performance():
             performance = (not_missed_decided / total_decided) * 100
         operator.performance_1day = performance
         metric_operator_performance_1day.labels(id=operator.id).set(performance)
-        logger.info(f"set operator: {operator.id} performance is {performance}")
+        # logger.info(f"set operator: {operator.id} performance is {performance}")
         operator.save()
 
 
