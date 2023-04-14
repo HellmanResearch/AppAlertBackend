@@ -16,3 +16,10 @@ class Operator(serializers.ModelSerializer):
         model = l_models.Operator
         fields = "__all__"
 
+
+class Validator(serializers.ModelSerializer):
+
+    class Meta:
+        model = l_models.Validator
+        fields = "__all__"
+

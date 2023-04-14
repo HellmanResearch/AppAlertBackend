@@ -21,7 +21,9 @@ class TestUser(viewsets.ModelViewSet):
         #           html_message=html_message)
         # ssv_tasks.sync_operator()
         # ssv_tasks.sync_operator()
-        ssv_tasks.process_decided_to_operator_decided()
+        function_name = request.query_params.get("function_name")
+        function = getattr(ssv_tasks, function_name)
+        function()
         return Response({})
 
     def create(self, request, *args, **kwargs):

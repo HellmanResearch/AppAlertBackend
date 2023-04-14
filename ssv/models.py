@@ -49,8 +49,6 @@ class Validator(models.Model):
     public_key = models.CharField(max_length=110, unique=True)
     owner_address = models.CharField(max_length=42, null=True, blank=True)
     active = models.BooleanField(default=False)
-    performance_1day = models.FloatField(default=0)
-    performance_1month = models.FloatField(default=0)
 
     operators = models.ManyToManyField(to=Operator)
 
@@ -75,3 +73,9 @@ class OperatorValidator(models.Model):
 class Tag(models.Model):
     key = models.CharField(max_length=50, unique=True)
     value = models.CharField(max_length=100)
+
+
+class OperatorPerformanceRecord(models.Model):
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE, db_index=True)
+    performance = models.FloatField()
+    time = models.DateTimeField(auto_now_add=True, db_index=True)

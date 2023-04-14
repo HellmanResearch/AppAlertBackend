@@ -10,7 +10,7 @@ from django.conf import settings
 from celery import shared_task
 from multiprocessing import Lock
 
-from django.db.models import Max, Count, Min
+from django.db.models import Max, Count, Min, Avg
 from websockets.sync.client import connect
 from django.db import IntegrityError
 
@@ -283,6 +283,7 @@ def update_performance():
         metric_operator_performance_1day.labels(id=operator.id).set(performance)
         # logger.info(f"set operator: {operator.id} performance is {performance}")
         operator.save()
+        l_models.OperatorPerformanceRecord.objects.create(operator=operator, performance=performance, time=now)
 
 
 @shared_task
@@ -291,3 +292,46 @@ def delete_decided():
     before_one_day = now - datetime.timedelta(days=1)
     l_models.Decided.objects.filter(create_time__lte=before_one_day).delete()
     l_models.OperatorDecided.objects.filter(time__lte=before_one_day).delete()
+
+
+@shared_task
+def update_operator_from_chain():
+    operator_qs = l_models.Operator.objects.all()
+    contract = get_contract()
+    for operator in operator_qs:
+        operator_info = contract.functions.operators(operator.id).call()
+        operator.fee_human = operator_info[1] / 38264
+        operator.validator_count = operator_info[2]
+        operator.owner_address = operator_info[0]
+        operator.save()
+        l_models.Account.objects.get_or_create(address=operator_info[0])
+
+
+@shared_task
+def update_operator_active_status():
+    operator_qs = l_models.Operator.objects.all()
+    now = datetime.datetime.now()
+    end_time = now - datetime.timedelta(minutes=20)
+    operator_id_qs = l_models.OperatorDecided.objects.filter(time__gte=end_time).values("operator_id").distinct()
+    operator_id_list = [item for item in operator_id_qs]
+    for operator in operator_qs:
+        active = False
+        if operator.validator_count == 0 or operator.id in operator_id_list:
+            active = True
+        operator.active = active
+        operator.save()
+
+
+@shared_task
+def update_operator_performance_month():
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(days=30)
+    performance_qs = l_models.OperatorPerformanceRecord.objects.filter(time__gte=start_time).values("operator__id")\
+        .annotate(performance_avg=Avg("performance"))
+    performance_map = {item["operator__id"]: item["performance_avg"] for item in performance_qs}
+    for operator in l_models.Operator.objects.all():
+        performance_1month = performance_map.get(operator.id)
+        if performance_1month is None:
+            performance_1month = 0.0
+        operator.performance_1month = performance_1month
+        operator.save()

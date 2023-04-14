@@ -19,3 +19,18 @@ class Operator(viewsets.ReadOnlyModelViewSet):
         operator_qs = self.queryset.all()
         choices = [[item.id, str(item.id)] for item in operator_qs]
         return Response(choices)
+
+
+class Validator(viewsets.ReadOnlyModelViewSet):
+    serializer_class = l_serializers.Validator
+    queryset = l_models.Validator.objects.all()
+
+    permission_classes = []
+
+    filter_fields = [""]
+
+    @action(methods=["get"], detail=False, url_path="validator-choices", permission_classes=[])
+    def c_get_validator_choices(self, request, *args, **kwargs):
+        validator_qs = self.queryset.all()
+        choices = [[item.public_key, item.public_key] for item in validator_qs]
+        return Response(choices)
