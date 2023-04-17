@@ -15,3 +15,4 @@ mysqlclient==2.1.1
 django-filter==22.1
 django-prometheus==2.2.0
 alibabacloud-dm20151123==1.0.5
+websocket-client==1.5.1
