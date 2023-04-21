@@ -75,6 +75,18 @@ app.conf.beat_schedule = {
     'update_operator_performance_month': {
         'task': 'ssv.tasks.update_operator_performance_month',
         'schedule': 60 * 60
+    },
+    'update_operator_name': {
+        'task': 'ssv.tasks.update_operator_name',
+        'schedule': 60 * 60
+    },
+    'update_cluster': {
+        'task': 'ssv.tasks.update_cluster',
+        'schedule': 60 * 60
+    },
+    'update_validator': {
+        'task': 'ssv.tasks.update_validator',
+        'schedule': 60 * 10
     }
 }
 

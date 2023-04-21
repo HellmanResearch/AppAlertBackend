@@ -32,12 +32,20 @@ class Account(models.Model):
 
 
 class Operator(models.Model):
+
+    # RUN_STATUS = (
+    #     ("active", "active"),
+    #     ("inactive", "inactive"),
+    # )
+
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50, null=True, blank=True)
     owner_address = models.CharField(max_length=42, null=True, blank=True)
     active = models.BooleanField(default=False)
+    # run_status = models.CharField(choices=RUN_STATUS, default="inactive", db_index=True)
     validator_count = models.IntegerField(default=0)
     fee_human = models.FloatField(default=0)
+    snapshot_index = models.BigIntegerField(default=0)
     performance_1day = models.FloatField(default=0)
     performance_1month = models.FloatField(default=0)
 
@@ -79,3 +87,17 @@ class OperatorPerformanceRecord(models.Model):
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE, db_index=True)
     performance = models.FloatField()
     time = models.DateTimeField(auto_now_add=True, db_index=True)
+
+
+class Cluster(models.Model):
+    id = models.CharField(max_length=66, primary_key=True)
+    owner = models.CharField(max_length=42)
+    operator_ids = models.CharField(max_length=50)
+    balance_human = models.FloatField(default=0.0)
+    validator_count = models.IntegerField(default=1)
+    active = models.BooleanField(default=True)
+    est_days = models.IntegerField(default=0)
+    liquidated = models.BooleanField(default=False)
+
+
+

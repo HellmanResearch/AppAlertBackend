@@ -1,10 +1,12 @@
 import datetime
 import json
 import logging
+import time
 import traceback
 import prometheus_client
 
 import django.db
+import requests
 from django.conf import settings
 
 from celery import shared_task
@@ -22,6 +24,8 @@ from django.conf import settings
 
 from . import models as l_models
 from . import others as l_others
+from .others import cluster as l_cluster
+from .others import contract as l_contract
 
 logger = logging.getLogger("tasks")
 
@@ -33,41 +37,11 @@ metric_operator_performance_1day = prometheus_client.Gauge("operator_performance
 
 
 def get_validator_operators():
-    # validator_operators_map = {}
-
     validator_qs = l_models.Validator.objects.all()
     validator_operators_map = {validator.public_key: [operator.id for operator in validator.operators.all()] for
                                validator in validator_qs}
-    # for validator in validator_qs:
-    #     validator_public_key = validator.public_key
-    #     operator_id_list = validator_operators_map.get(validator_public_key)
-    #     if operator_id_list is None:
-    #         operator_id_list = []
-    #     operator_id_list.append(operator_validator.operator_id)
-    #     validator_operators_map[validator_public_key] = operator_id_list
+
     return validator_operators_map
-
-    # validator_operators_map = {}
-    # operator_validator_list = l_models.OperatorValidator.objects.all()
-    # for operator_validator in operator_validator_list:
-    #     validator_public_key = operator_validator.validator_public_key
-    #     operator_id_list = validator_operators_map.get(validator_public_key)
-    #     if operator_id_list is None:
-    #         operator_id_list = []
-    #     operator_id_list.append(operator_validator.operator_id)
-    #     validator_operators_map[validator_public_key] = operator_id_list
-    # return validator_operators_map
-
-    # if operator_validator.validator_public_key not in validator_operators_map.keys():
-    #     validator_operators_map[operator_validator.validator_public_key] = []
-    # validator_operators_map[operator_validator.validator_public_key] = validator_operators_map[operator_validator.validator_public_key] + [operator_validator.operator_id]
-
-
-def get_contract():
-    w3 = Web3(Web3.HTTPProvider(settings.ETH_URL))
-    abi = json.loads(settings.SSV_ABI)
-    contract = w3.eth.contract(address=settings.SSV_ADDRESS, abi=abi)
-    return contract
 
 
 def get_last_block_number():
@@ -190,7 +164,7 @@ def sync_operator():
     end_last_sync_operator_block_height = last_sync_operator_block_height + 10000
     if end_last_sync_operator_block_height > last_block_number:
         end_last_sync_operator_block_height = last_block_number
-    contract = get_contract()
+    contract = l_contract.get_contract()
     event_filter = contract.events.OperatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
                                                                toBlock=end_last_sync_operator_block_height)
     entries = event_filter.get_all_entries()
@@ -224,7 +198,7 @@ def sync_validator():
     end_last_sync_validator_block_height = last_sync_validator_block_height + 10000
     if end_last_sync_validator_block_height > last_block_number:
         end_last_sync_validator_block_height = last_block_number
-    contract = get_contract()
+    contract = l_contract.get_contract()
     event_filter = contract.events.ValidatorAdded.create_filter(fromBlock=last_sync_validator_block_height,
                                                                 toBlock=end_last_sync_validator_block_height)
     entries = event_filter.get_all_entries()
@@ -241,6 +215,10 @@ def sync_validator():
         validator, is_new = l_models.Validator.objects.get_or_create(public_key=validator_public_key)
         validator.owner_address = owner_address
         validator.operators.set(operator_list)
+
+        l_cluster.save_cluster(event)
+
+
         # print("entries: ", entries)
         # try:
         #     operator_list = []
@@ -300,14 +278,18 @@ def delete_decided():
 @shared_task
 def update_operator_from_chain():
     operator_qs = l_models.Operator.objects.all()
-    contract = get_contract()
+    contract = l_contract.get_contract()
     for operator in operator_qs:
-        operator_info = contract.functions.operators(operator.id).call()
-        operator.fee_human = operator_info[1] / 38264
-        operator.validator_count = operator_info[2]
-        operator.owner_address = operator_info[0]
-        operator.save()
-        l_models.Account.objects.get_or_create(address=operator_info[0])
+        try:
+            operator_info = contract.functions.operators(operator.id).call()
+            operator.fee_human = operator_info[1] / 38264
+            operator.validator_count = operator_info[2]
+            operator.owner_address = operator_info[0]
+            operator.snapshot_index = operator_info[3][1]
+            operator.save()
+            l_models.Account.objects.get_or_create(address=operator_info[0])
+        except Exception as exc:
+            logger.warning(f"update operator from chain error: operator_id {operator.id} exc: {exc}")
 
 
 @shared_task
@@ -338,3 +320,60 @@ def update_operator_performance_month():
             performance_1month = 0.0
         operator.performance_1month = performance_1month
         operator.save()
+
+
+@shared_task
+def update_operator_name():
+    operator_list = []
+    base_url = f"https://api.ssv.network/api/v3/prater/operators/"
+    page = 0
+    page_size = 100
+    while True:
+        page += 1
+        url = f"{base_url}?page={page}&perPage={page_size}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise Exception(f"response.status_code != 200 body: {response.text}")
+        response_json = response.json()
+        operators = response_json["operators"]
+        operator_list.extend(operators)
+        if len(operators) == 0 or page*page_size >= response_json["pagination"]["total"]:
+            break
+        time.sleep(5)
+
+    id_name_map = {item["id"]: item["name"] for item in operator_list}
+    for operator in l_models.Operator.objects.all():
+        name = id_name_map.get(operator.id)
+        if name is None:
+            continue
+        operator.name = name
+        operator.save()
+
+
+@shared_task
+def update_cluster():
+    cluster_qs = l_models.Cluster.objects.all()
+    contract = l_contract.get_contract()
+    view_contract = l_contract.get_view_contract()
+    network_fee, network_fee_index, network_fee_index_block_number = contract.functions.network().call()
+    minimum_blocks_before_liquidation = contract.functions.minimumBlocksBeforeLiquidation().call()
+    minimum_liquidation_collateral = contract.functions.minimumLiquidationCollateral().call()
+    for cluster in cluster_qs:
+        try:
+            l_cluster.update_cluster(cluster, view_contract, network_fee=network_fee, network_fee_index=network_fee_index,
+                                     minimum_liquidation_collateral=minimum_liquidation_collateral,
+                                     minimum_blocks_before_liquidation=minimum_blocks_before_liquidation)
+        except Exception as exc:
+            logger.warning(f"update cluster {cluster.id} failed exc: {exc}")
+
+
+@shared_task
+def update_validator():
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(minutes=30)
+    validator_public_key_qs = l_models.Decided.objects.filter(create_time__gte=start_time).values("validator_public_key").distinct()
+    validator_public_key_list = [item["validator_public_key"] for item in validator_public_key_qs]
+    validator_qs = l_models.Validator.objects.all()
+    for validator in validator_qs:
+        validator.active = validator.public_key in validator_public_key_list
+        validator.save()

@@ -15,3 +15,11 @@ def get_contract():
 def get_last_block_number():
     w3 = Web3(Web3.HTTPProvider(settings.ETH_URL))
     return w3.eth.block_number
+
+
+def get_view_contract():
+    w3 = Web3(Web3.HTTPProvider(settings.ETH_URL))
+    abi = json.loads(settings.SSV_VIEW_ABI)
+    contract = w3.eth.contract(address=settings.SSV_VIEW_ADDRESS, abi=abi)
+    return contract
+
