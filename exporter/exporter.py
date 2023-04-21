@@ -86,7 +86,7 @@ def update_operator():
     operator_qs = ssv_models.Operator.objects.all()
     for operator in operator_qs:
         metric_operator_performance_1day.labels(id=operator.id).set(operator.performance_1day)
-        metric_operator_performance_1month.labels(id=operator.id).set(operator.operator_performance_1month)
+        metric_operator_performance_1month.labels(id=operator.id).set(operator.performance_1month)
         active_status = 1 if operator.active is True else 0
         metric_operator_active.labels(id=operator.id).set(active_status)
         metric_operator_fee.labels(id=operator.id).set(operator.fee_human)
