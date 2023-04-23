@@ -23,3 +23,9 @@ class Validator(serializers.ModelSerializer):
         model = l_models.Validator
         fields = "__all__"
 
+
+class Cluster(serializers.ModelSerializer):
+
+    class Meta:
+        model = l_models.Cluster
+        fields = "__all__"
