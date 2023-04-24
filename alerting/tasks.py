@@ -4,6 +4,7 @@ import logging
 import time
 
 import jinja2
+import requests
 from django.conf import settings
 
 from celery import shared_task
@@ -85,3 +86,39 @@ def no_confirm_reminder():
     logger.info("no confirm count: {}", count)
     for alert in alert_qs:
         do_action.delay(alert_id=alert.id)
+
+
+@shared_task
+def new_subscribe_check_triggerd(subscribe_id: int):
+    subscribe = l_models.Subscribe.objects.get(id=subscribe_id)
+    intervals = subscribe.create_time - subscribe.rule.create_time
+    intervals_seconds = intervals.total_seconds()
+    if intervals_seconds < 60:
+        return
+    url = f"{settings.PROM_BASE_URL}/api/v1/query"
+    params = {
+        "query": f'ALERTS{{alertname="{subscribe.rule.id}"}}'
+    }
+    response = requests.get(url, params=params)
+    logger.info(f"response.status_code: {response.status_code} body: {response.text}")
+    if response.status_code != 200:
+        raise Exception("response.status_code != 200")
+    response_json = response.json()
+    result = response_json["data"]["result"]
+    if len(result) > 1:
+        raise Exception("len(result) > 1")
+    elif len(result) == 0:
+        return
+    l_models.Alert.objects.create(
+        subscribe=subscribe,
+        user=subscribe.user,
+        metric=subscribe.metric,
+        prom_alert_id=0,
+        has_sent=False
+    )
+
+
+
+
+
+

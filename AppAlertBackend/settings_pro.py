@@ -23,3 +23,4 @@ PROM_ADDR = "127.0.0.1"
 BASE_URL = "https://alert.hellman.team"
 
 SSV_NODE_WS = "ws://172.30.70.4:15001"
+SSV_CLUSTER_SCANNER = "/opt/alert/cluster-scanner"

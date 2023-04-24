@@ -32,8 +32,8 @@ logger = logging.getLogger("tasks")
 sync_decided_lock = Lock()
 process_decided_to_operator_decided_lock = Lock()
 
-metric_operator_performance_1day = prometheus_client.Gauge("operator_performance_1day",
-                                                           "operator performance 1 day", ["id"])
+# metric_operator_performance_1day = prometheus_client.Gauge("operator_performance_1day",
+#                                                            "operator performance 1 day", ["id"])
 
 
 def get_validator_operators():
@@ -92,14 +92,9 @@ def process_decided_to_operator_decided():
     is_got = process_decided_to_operator_decided_lock.acquire(timeout=1)
     if is_got is False:
         return
+    failed_count = 0
+    total_count = 0
     try:
-        # last_process_decided_id_key = "last_process_decided_id"
-        # last_process_decided_id = 0
-        # try:
-        #     last_process_decided_id_tag = l_models.Tag.objects.get(key=last_process_decided_id_key)
-        #     last_process_decided_id = int(last_process_decided_id_tag.value)
-        # except l_models.Tag.DoesNotExist as exc:
-        #     l_models.Tag.objects.create(key=last_process_decided_id_key, value="0")
         validator_operators_map = get_validator_operators()
         last_process_decided_id = 0
         result = l_models.OperatorDecided.objects.aggregate(Max("decided_id"))
@@ -117,15 +112,13 @@ def process_decided_to_operator_decided():
                                                      create_time__lte=limit_time)
         logger.info(f"decided_qs.count: {decided_qs.count()} last_process_decided_id: {last_process_decided_id} new_last_process_decided_id: {new_last_process_decided_id} limit_time: {limit_time}")
         for decided in decided_qs:
+            total_count += 1
             operator_decided_list = []
             operator_id_list = validator_operators_map.get(decided.validator_public_key)
             if operator_id_list is None:
                 logger.warning(f"validator {decided.validator_public_key} not in validator_operators_map")
                 continue
-            # operator_id_set = set(operator_id_list)
             signer_id_list = [int(item) for item in decided.signers.split(",")]
-            # missed_operator_id_list = set(operator_id_list) - set(signer_id_list)
-            # logger.warning("")
             for operator_id in operator_id_list:
                 missed = operator_id not in signer_id_list
                 operator_decided = l_models.OperatorDecided(decided_id=decided.id,
@@ -134,21 +127,15 @@ def process_decided_to_operator_decided():
                                                             missed=missed,
                                                             time=decided.create_time)
 
-                # for signer in signer_id_list:
-                #     # signer = int(signer_str)
-                #     operator_decided = l_models.OperatorDecided(decided_id=decided.id,
-                #                                                 operator_id=signer,
-                #                                                 height=decided.height,
-                #                                                 missed=False,
-                #                                                 time=decided.create_time)
                 operator_decided_list.append(operator_decided)
             l_models.OperatorDecided.objects.bulk_create(operator_decided_list)
-        # l_models.Tag.objects.filter(key=last_process_decided_id_key).update(value=new_last_process_decided_id)
     except Exception as exc:
         process_decided_to_operator_decided_lock.release()
         logger.warning(f"process_decided_to_operator_decided error exc: {exc}")
+        failed_count += 1
     else:
         process_decided_to_operator_decided_lock.release()
+    return f"failed_count: {failed_count} total_count: {total_count}"
 
 
 @shared_task
@@ -164,24 +151,18 @@ def sync_operator():
     end_last_sync_operator_block_height = last_sync_operator_block_height + 10000
     if end_last_sync_operator_block_height > last_block_number:
         end_last_sync_operator_block_height = last_block_number
+
+    logger.info(f"last_sync_operator_block_height: {last_sync_operator_block_height} end_last_sync_operator_block_height: {end_last_sync_operator_block_height}")
+
     contract = l_contract.get_contract()
     event_filter = contract.events.OperatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
                                                                toBlock=end_last_sync_operator_block_height)
     entries = event_filter.get_all_entries()
     for event in entries:
-        try:
-            owner_address = event["args"]["owner"]
-            operator_id = event["args"]["operatorId"]
-            l_models.Account.objects.get_or_create(address=owner_address)
-            # l_models.Account.objects.create(public_key=event["args"]["owner"])
-            l_models.Operator.objects.get_or_create(id=operator_id)
-        except Exception as exc:
-            logger.error(f"add operator error exc: {exc}")
-        #
-        # try:
-        #     l_models.Operator.objects.create(public_key=event["args"]["owner"])
-        # except l_models.Account.DoesNotExist:
-        #     pass
+        owner_address = event["args"]["owner"]
+        operator_id = event["args"]["operatorId"]
+        l_models.Account.objects.get_or_create(address=owner_address)
+        l_models.Operator.objects.get_or_create(id=operator_id)
     l_models.Tag.objects.filter(key=last_sync_operator_key).update(value=str(end_last_sync_operator_block_height))
 
 
@@ -261,24 +242,27 @@ def update_performance():
         if total_decided is not None:
             performance = (not_missed_decided / total_decided) * 100
         operator.performance_1day = performance
-        metric_operator_performance_1day.labels(id=operator.id).set(performance)
+        # metric_operator_performance_1day.labels(id=operator.id).set(performance)
         # logger.info(f"set operator: {operator.id} performance is {performance}")
         operator.save()
         l_models.OperatorPerformanceRecord.objects.create(operator=operator, performance=performance, time=now)
 
 
 @shared_task
-def delete_decided():
+def clear_data():
     now = datetime.datetime.now()
     before_one_day = now - datetime.timedelta(days=1)
+    before_one_month = now - datetime.timedelta(days=30)
     l_models.Decided.objects.filter(create_time__lte=before_one_day).delete()
     l_models.OperatorDecided.objects.filter(time__lte=before_one_day).delete()
+    l_models.OperatorPerformanceRecord.objects.filter(time__lte=before_one_month).delete()
 
 
 @shared_task
 def update_operator_from_chain():
     operator_qs = l_models.Operator.objects.all()
     contract = l_contract.get_contract()
+    failed_count = 0
     for operator in operator_qs:
         try:
             operator_info = contract.functions.operators(operator.id).call()
@@ -290,6 +274,8 @@ def update_operator_from_chain():
             l_models.Account.objects.get_or_create(address=operator_info[0])
         except Exception as exc:
             logger.warning(f"update operator from chain error: operator_id {operator.id} exc: {exc}")
+            failed_count += 1
+    return f"failed_count: {failed_count}"
 
 
 @shared_task
@@ -298,7 +284,7 @@ def update_operator_active_status():
     now = datetime.datetime.now()
     end_time = now - datetime.timedelta(minutes=20)
     operator_id_qs = l_models.OperatorDecided.objects.filter(time__gte=end_time).values("operator_id").distinct()
-    operator_id_list = [item for item in operator_id_qs]
+    operator_id_list = [item["operator_id"] for item in operator_id_qs]
     for operator in operator_qs:
         active = False
         if operator.validator_count == 0 or operator.id in operator_id_list:

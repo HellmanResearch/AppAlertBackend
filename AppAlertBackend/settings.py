@@ -315,6 +315,7 @@ CORS_ALLOW_HEADERS = [
 
 CELERY_BROKER_URL = "amqp://alert:alert,1@192.168.1.128/alert"
 CELERY_RESULT_BACKEND = "django-db"
+CELERY_RESULT_EXTENDED = True
 
 
 STATIC_URL = '/django-static/'

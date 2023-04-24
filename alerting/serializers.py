@@ -58,7 +58,7 @@ class Subscribe(serializers.ModelSerializer):
             expr = template.render(conditions=self.validated_data["conditions"])
         except Exception as exc:
             raise exceptions.ParseError(f"render template error: {exc}")
-        rule, _ = prom_models.Rule.objects.get_or_create(metric=metric, expr=expr)
+        rule, is_new = prom_models.Rule.objects.get_or_create(metric=metric, expr=expr)
         try:
             object = l_models.Subscribe.objects.get(user=kwargs["user"], rule=rule)
             if self.instance is not None:
@@ -70,7 +70,7 @@ class Subscribe(serializers.ModelSerializer):
         except l_models.Subscribe.DoesNotExist:
             pass
         kwargs["rule"] = rule
-        super().save(**kwargs)
+        return super().save(**kwargs)
 
     # def validate(self, attrs):
     #     metric = attrs.get("metric")

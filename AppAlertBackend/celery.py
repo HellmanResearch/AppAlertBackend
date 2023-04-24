@@ -58,10 +58,10 @@ app.conf.beat_schedule = {
     },
     'update_performance': {
         'task': 'ssv.tasks.update_performance',
-        'schedule': 120
+        'schedule': 600
     },
-    'delete_decided': {
-        'task': 'ssv.tasks.delete_decided',
+    'clear_data': {
+        'task': 'ssv.tasks.clear_data',
         'schedule': 60 * 60
     },
     'update_operator_from_chain': {

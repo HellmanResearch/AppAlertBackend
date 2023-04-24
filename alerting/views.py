@@ -3,7 +3,7 @@ import logging
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.core.signing import Signer
-
+from django.conf import settings
 
 from rest_framework import serializers
 from rest_framework import viewsets
@@ -35,6 +35,8 @@ class TestTask(viewsets.ViewSet):
     permission_classes = [permissions.IsAdminUser]
 
     def create(self, request, *args, **kwargs):
+        if settings.ENV != "LOCAL":
+            raise exceptions.ParseError('settings.ENV != "LOCAL"')
         function_name = request.data["function_name"]
         kwargs = request.data["kwargs"]
         function = getattr(l_tasks, function_name)
@@ -63,10 +65,12 @@ class Subscribe(viewsets.ModelViewSet):
         count = self.get_queryset().count()
         if count >= self.request.user.max_subscribe:
             raise exceptions.ParseError(f"Exceeded subscription limit")
-        serializer.save(user=self.request.user)
+        instance = serializer.save(user=self.request.user)
+        l_tasks.new_subscribe_check_triggerd.delay(instance.id)
 
     def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
+        instance = serializer.save(user=self.request.user)
+        l_tasks.new_subscribe_check_triggerd.delay(instance.id)
 
     @action(methods=["post"], detail=False, url_path="action-test")
     def c_test_send(self, request, *args, **kwargs):
