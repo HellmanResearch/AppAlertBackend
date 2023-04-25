@@ -65,7 +65,7 @@ def update_rule_to_prometheus_and_reload():
     data = {"groups": groups}
     with open(settings.PROM_RULE_FILE, "w") as f:
         yaml.dump(data, f)
-    logger.info(f"update {rule} rules")
+    logger.info(f"update {count} rules")
 
     reload_url = f"{settings.PROM_BASE_URL}/-/reload"
     response = requests.post(reload_url, timeout=60)
