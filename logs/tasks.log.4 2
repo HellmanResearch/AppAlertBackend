@@ -1,0 +1,4 @@
+2023-04-24 22:23:40,845 [MainThread:4604401152] [tasks:71] [tasks:first_action] [INFO]- count waiting to be sent: 0
+2023-04-24 22:24:42,636 [MainThread:4604401152] [tasks:54] [tasks:sync_decided] [INFO]- in sync_decided
+2023-04-24 22:25:40,950 [MainThread:4604401152] [tasks:71] [tasks:first_action] [INFO]- count waiting to be sent: 0
+2023-04-24 22:30:42,636 [MainThread:4604401152] [tasks:54] [tasks:sync_decided] [INFO]- in sync_decided

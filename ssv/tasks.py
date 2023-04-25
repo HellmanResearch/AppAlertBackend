@@ -344,6 +344,8 @@ def update_cluster():
     network_fee, network_fee_index, network_fee_index_block_number = contract.functions.network().call()
     minimum_blocks_before_liquidation = contract.functions.minimumBlocksBeforeLiquidation().call()
     minimum_liquidation_collateral = contract.functions.minimumLiquidationCollateral().call()
+    if settings.ENV == "LOCAL":
+        cluster_qs = cluster_qs.filter(owner="0xD1bA19ACa6A16C096ACF0B48E27Ffb8843b7FAd0")
     for cluster in cluster_qs:
         try:
             l_cluster.update_cluster(cluster, view_contract, network_fee=network_fee, network_fee_index=network_fee_index,
