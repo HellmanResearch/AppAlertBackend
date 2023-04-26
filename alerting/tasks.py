@@ -24,8 +24,8 @@ def create_alert():
     max_prom_alert_id = 0
     if alert is not None:
         max_prom_alert_id = alert.prom_alert_id
-
-    prom_alert_qs = prom_models.Alert.objects.filter(id__gt=max_prom_alert_id).order_by("id")
+    three_days_ago = datetime.datetime.now() - datetime.timedelta(days=3)
+    prom_alert_qs = prom_models.Alert.objects.filter(id__gt=max_prom_alert_id, create_time__gt=three_days_ago).order_by("id")
     for prom_alert in prom_alert_qs:
         l_crate_alert_from_prom_alert(prom_alert)
 
