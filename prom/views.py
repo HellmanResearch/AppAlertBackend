@@ -139,7 +139,7 @@ class Alert(viewsets.GenericViewSet):
                 except l_models.Rule.DoesNotExist:
                     logger.warning(f"unknown alertname: {rule_id}")
                     continue
-                datetime_str = alert["startsAt"].rstrip("Z")
+                datetime_str = alert["startsAt"].split(".")[0]
                 start_at = datetime.datetime.fromisoformat(datetime_str)
                 if start_at > valid_time:
                     l_models.Alert.objects.create(rule=rule, start_at=start_at)
