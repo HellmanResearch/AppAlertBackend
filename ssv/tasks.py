@@ -8,11 +8,11 @@ import prometheus_client
 import django.db
 import requests
 from django.conf import settings
+from django.db.transaction import atomic
 
 from celery import shared_task
 from multiprocessing import Lock
 from websocket import create_connection
-
 
 from django.db.models import Max, Count, Min, Avg
 from websockets.sync.client import connect
@@ -26,11 +26,13 @@ from . import models as l_models
 from . import others as l_others
 from .others import cluster as l_cluster
 from .others import contract as l_contract
+from .others import utils as l_utils
 
 logger = logging.getLogger("tasks")
 
 sync_decided_lock = Lock()
 process_decided_to_operator_decided_lock = Lock()
+
 
 # metric_operator_performance_1day = prometheus_client.Gauge("operator_performance_1day",
 #                                                            "operator performance 1 day", ["id"])
@@ -110,7 +112,8 @@ def process_decided_to_operator_decided():
         decided_qs = l_models.Decided.objects.filter(id__gte=last_process_decided_id,
                                                      id__lt=new_last_process_decided_id,
                                                      create_time__lte=limit_time)
-        logger.info(f"decided_qs.count: {decided_qs.count()} last_process_decided_id: {last_process_decided_id} new_last_process_decided_id: {new_last_process_decided_id} limit_time: {limit_time}")
+        logger.info(
+            f"decided_qs.count: {decided_qs.count()} last_process_decided_id: {last_process_decided_id} new_last_process_decided_id: {new_last_process_decided_id} limit_time: {limit_time}")
         for decided in decided_qs:
             total_count += 1
             operator_decided_list = []
@@ -152,17 +155,24 @@ def sync_operator():
     if end_last_sync_operator_block_height > last_block_number:
         end_last_sync_operator_block_height = last_block_number
 
-    logger.info(f"last_sync_operator_block_height: {last_sync_operator_block_height} end_last_sync_operator_block_height: {end_last_sync_operator_block_height}")
+    logger.info(
+        f"last_sync_operator_block_height: {last_sync_operator_block_height} end_last_sync_operator_block_height: {end_last_sync_operator_block_height}")
 
     contract = l_contract.get_contract()
     event_filter = contract.events.OperatorAdded.create_filter(fromBlock=last_sync_operator_block_height,
                                                                toBlock=end_last_sync_operator_block_height)
     entries = event_filter.get_all_entries()
+    logger.info(f"got {len(entries)} events of OperatorAdded")
     for event in entries:
         owner_address = event["args"]["owner"]
         operator_id = event["args"]["operatorId"]
         l_models.Account.objects.get_or_create(address=owner_address)
-        l_models.Operator.objects.get_or_create(id=operator_id)
+        with atomic():
+            operator, is_new = l_models.Operator.objects.get_or_create(id=operator_id)
+            operator.owner_address = owner_address
+            operator.save()
+            l_models.Tag.objects.filter(key=last_sync_operator_key).update(
+                value=str(end_last_sync_operator_block_height))
     l_models.Tag.objects.filter(key=last_sync_operator_key).update(value=str(end_last_sync_operator_block_height))
 
 
@@ -197,8 +207,7 @@ def sync_validator():
         validator.owner_address = owner_address
         validator.operators.set(operator_list)
 
-        l_cluster.save_cluster(event)
-
+        # l_cluster.save_cluster(event)
 
         # print("entries: ", entries)
         # try:
@@ -297,7 +306,7 @@ def update_operator_active_status():
 def update_operator_performance_month():
     now = datetime.datetime.now()
     start_time = now - datetime.timedelta(days=30)
-    performance_qs = l_models.OperatorPerformanceRecord.objects.filter(time__gte=start_time).values("operator__id")\
+    performance_qs = l_models.OperatorPerformanceRecord.objects.filter(time__gte=start_time).values("operator__id") \
         .annotate(performance_avg=Avg("performance"))
     performance_map = {item["operator__id"]: item["performance_avg"] for item in performance_qs}
     for operator in l_models.Operator.objects.all():
@@ -323,7 +332,7 @@ def update_operator_name():
         response_json = response.json()
         operators = response_json["operators"]
         operator_list.extend(operators)
-        if len(operators) == 0 or page*page_size >= response_json["pagination"]["total"]:
+        if len(operators) == 0 or page * page_size >= response_json["pagination"]["total"]:
             break
         time.sleep(5)
 
@@ -337,29 +346,61 @@ def update_operator_name():
 
 
 @shared_task
-def update_cluster():
+def update_cluster_balance_est_days():
     cluster_qs = l_models.Cluster.objects.all()
     contract = l_contract.get_contract()
     view_contract = l_contract.get_view_contract()
-    network_fee, network_fee_index, network_fee_index_block_number = contract.functions.network().call()
+    network_fee = view_contract.functions.getNetworkFee().call()
     minimum_blocks_before_liquidation = contract.functions.minimumBlocksBeforeLiquidation().call()
     minimum_liquidation_collateral = contract.functions.minimumLiquidationCollateral().call()
-    if settings.ENV == "LOCAL":
-        cluster_qs = cluster_qs.filter(owner="0xD1bA19ACa6A16C096ACF0B48E27Ffb8843b7FAd0")
+    # if settings.ENV == "LOCAL":
+    #     cluster_qs = cluster_qs.filter(owner="0xD1bA19ACa6A16C096ACF0B48E27Ffb8843b7FAd0")
     for cluster in cluster_qs:
         try:
-            l_cluster.update_cluster(cluster, view_contract, network_fee=network_fee, network_fee_index=network_fee_index,
-                                     minimum_liquidation_collateral=minimum_liquidation_collateral,
-                                     minimum_blocks_before_liquidation=minimum_blocks_before_liquidation)
+            l_cluster.update_cluster_balance_est_days(
+                cluster, view_contract,
+                network_fee=network_fee,
+                minimum_liquidation_collateral=minimum_liquidation_collateral,
+                minimum_blocks_before_liquidation=minimum_blocks_before_liquidation
+            )
+            # l_cluster.update_cluster2(cluster, contract)
         except Exception as exc:
             logger.warning(f"update cluster {cluster.id} failed exc: {exc}")
+
+
+@shared_task
+@l_utils.sync_event_start_end_block_number(key="last_sync_cluster_from_events",
+                                           init_start_block_number=settings.SSV_INIT_HEIGHT, interval=10000,
+                                           rpc_server_address=settings.ETH_URL)
+def sync_cluster_from_events(from_block_number: int, to_block_number: int):
+    # from_block_number: int, to_block_number: int
+    # from_block_number = 1000
+    # to_block_number = 2000
+    # from_block = max(cluster.last_sync_block_number, settings.SSV_INIT_HEIGHT)
+    # owner_topic = "0x" + eth_abi.encode(["address"], [cluster.owner]).hex()
+    contract = l_contract.get_contract()
+    filter_params = {
+        "address": settings.SSV_ADDRESS,
+        "fromBlock": from_block_number,
+        "toBlock": to_block_number
+    }
+    w3 = Web3(Web3.HTTPProvider(settings.ETH_URL))
+    log_list = w3.eth.get_logs(filter_params)
+    for log in log_list:
+        l_cluster.process_log(contract, log)
+        # with atomic():
+        #     tag = l_models.Tag.objects.get(key="last_update_cluster_from_events")
+        #     tag.value = str(log["blockNumber"])
+        #     tag.save()
+    pass
 
 
 @shared_task
 def update_validator():
     now = datetime.datetime.now()
     start_time = now - datetime.timedelta(minutes=30)
-    validator_public_key_qs = l_models.Decided.objects.filter(create_time__gte=start_time).values("validator_public_key").distinct()
+    validator_public_key_qs = l_models.Decided.objects.filter(create_time__gte=start_time).values(
+        "validator_public_key").distinct()
     validator_public_key_list = [item["validator_public_key"] for item in validator_public_key_qs]
     validator_qs = l_models.Validator.objects.all()
     for validator in validator_qs:

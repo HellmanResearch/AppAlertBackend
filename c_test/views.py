@@ -1,6 +1,8 @@
 
 from . import models as l_models
 from . import serializers as l_serializers
+
+from rest_framework import exceptions
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -21,6 +23,8 @@ class TestUser(viewsets.ModelViewSet):
         #           html_message=html_message)
         # ssv_tasks.sync_operator()
         # ssv_tasks.sync_operator()
+        if settings.ENV != "LOCAL":
+            raise exceptions.ParseError("The interface can only be called in local environment")
         function_name = request.query_params.get("function_name")
         function = getattr(ssv_tasks, function_name)
         function()

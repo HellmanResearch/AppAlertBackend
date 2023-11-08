@@ -93,11 +93,17 @@ class Cluster(models.Model):
     id = models.CharField(max_length=66, primary_key=True)
     owner = models.CharField(max_length=42)
     operator_ids = models.CharField(max_length=50)
+    balance = models.CharField(max_length=80, default="0")
     balance_human = models.FloatField(default=0.0)
     validator_count = models.IntegerField(default=1)
     active = models.BooleanField(default=True)
     est_days = models.IntegerField(default=0)
     liquidated = models.BooleanField(default=False)
+    last_sync_block_number = models.IntegerField(default=0)
+    index = models.BigIntegerField(default=0)
+    network_fee_index = models.BigIntegerField(default=0)
 
+    class Meta:
+        unique_together = (("owner", "operator_ids"), )
 
 

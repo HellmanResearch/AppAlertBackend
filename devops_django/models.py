@@ -73,3 +73,5 @@ class Lock(models.Model):
 
     create_time = models.DateTimeField(db_index=True, auto_now=True)
     update_time = models.DateTimeField(auto_now_add=True)
+
+

@@ -80,8 +80,12 @@ app.conf.beat_schedule = {
         'task': 'ssv.tasks.update_operator_name',
         'schedule': 60 * 60
     },
-    'update_cluster': {
-        'task': 'ssv.tasks.update_cluster',
+    'update_cluster_balance_est_days': {
+        'task': 'ssv.tasks.update_cluster_balance_est_days',
+        'schedule': 60 * 60
+    },
+    'sync_cluster_from_events': {
+        'task': 'ssv.tasks.sync_cluster_from_events',
         'schedule': 60 * 60
     },
     'update_validator': {
