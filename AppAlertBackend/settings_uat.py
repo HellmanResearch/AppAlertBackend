@@ -3,7 +3,7 @@ from .settings import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ssv_alert_service',
+        'NAME': 'ssv_alert_service_2',
         'USER': 'root',
         'PASSWORD': 'wonders,1',
         'HOST': '127.0.0.1',
@@ -18,3 +18,6 @@ PROM_BASE_URL = "http://127.0.0.1:9090"
 PROM_ADDR = "127.0.0.1"
 
 BASE_URL = "http://39.101.77.40"
+
+ETH_URL = "http://8.217.184.132:8545"
+
