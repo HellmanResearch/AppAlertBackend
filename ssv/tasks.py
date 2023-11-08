@@ -320,12 +320,11 @@ def update_operator_performance_month():
 @shared_task
 def update_operator_name():
     operator_list = []
-    base_url = f"https://api.ssv.network/api/v3/prater/operators/"
     page = 0
     page_size = 100
     while True:
         page += 1
-        url = f"{base_url}?page={page}&perPage={page_size}"
+        url = f"{settings.SSV_OPERATOR_BASE_URL}?page={page}&perPage={page_size}"
         response = requests.get(url)
         if response.status_code != 200:
             raise Exception(f"response.status_code != 200 body: {response.text}")
