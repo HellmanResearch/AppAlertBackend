@@ -44,3 +44,10 @@ class Cluster(admin.ModelAdmin):
     list_display = dd_models.get_all_field_name(l_models.Cluster)
     list_display_links = ("id",)
     list_per_page = 10
+
+
+@admin.register(l_models.Tag)
+class Tag(admin.ModelAdmin):
+    list_display = dd_models.get_all_field_name(l_models.Tag)
+    list_display_links = ("key",)
+    list_per_page = 10
