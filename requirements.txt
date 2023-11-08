@@ -1,7 +1,7 @@
 Django==4.1.2
 djangorestframework==3.14.0
 drf_yasg==1.21.4
-eth_account==0.5.9
+eth_account==0.8.0
 Jinja2==3.1.2
 pandas==1.4.3
 prometheus_client==0.14.1
@@ -16,3 +16,4 @@ django-filter==22.1
 django-prometheus==2.2.0
 alibabacloud-dm20151123==1.0.5
 websocket-client==1.5.1
+WSGIserver=1.3

@@ -8,7 +8,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ssv_alert_service',
         'USER': 'root',
-        'PASSWORD': 'wonders,1',
+        'PASSWORD': 'ssv_alert_service,1',
         'HOST': '127.0.0.1',
         'PORT': '3306'
     }
