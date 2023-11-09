@@ -19,4 +19,5 @@ PROM_ADDR = "127.0.0.1"
 
 BASE_URL = "http://39.101.77.40"
 
+# hongxia.tang@aliyun.com
 ETH_URL = "https://goerli.infura.io/v3/1072f8f211e2414dac30694460e39973"
