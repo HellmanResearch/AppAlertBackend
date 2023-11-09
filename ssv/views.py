@@ -12,7 +12,9 @@ class Operator(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = []
 
-    filter_fields = [""]
+    filterset_fields = ["owner_address", "active"]
+    search_fields = ("name", )
+
 
     @action(methods=["get"], detail=False, url_path="operator-choices", permission_classes=[])
     def get_operator_choices(self, request, *args, **kwargs):
@@ -27,7 +29,8 @@ class Validator(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = []
 
-    filter_fields = [""]
+    filterset_fields = ["public_key", "owner_address", "active"]
+    search_fields = ("public_key", )
 
     @action(methods=["get"], detail=False, url_path="validator-choices", permission_classes=[])
     def c_get_validator_choices(self, request, *args, **kwargs):
@@ -42,7 +45,8 @@ class Cluster(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = []
 
-    filter_fields = [""]
+    filterset_fields = ["owner", "active", "liquidated"]
+    search_fields = ("id", )
 
     @action(methods=["get"], detail=False, url_path="cluster-choices", permission_classes=[])
     def c_get_cluster_choices(self, request, *args, **kwargs):

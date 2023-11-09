@@ -58,6 +58,9 @@ def sync_decided():
     if is_got is False:
         return
     websocket = None
+
+    sync_exc = None
+
     try:
         logger.info("got lock")
         websocket = create_connection(f"{settings.SSV_NODE_WS}/stream")
@@ -81,11 +84,15 @@ def sync_decided():
                                                     signers=signers_str)
     except Exception as exc:
         sync_decided_lock.release()
+        sync_exc = exc
         logger.warning(f"sync decided error exc: {exc}")
     else:
         sync_decided_lock.release()
     if websocket is not None:
         websocket.close()
+
+    if sync_exc is not None:
+        raise sync_exc
 
 
 @shared_task
@@ -105,6 +112,9 @@ def process_decided_to_operator_decided():
         new_last_process_decided_id = last_process_decided_id + 10000
 
         min_result = l_models.Decided.objects.filter(id__gte=last_process_decided_id).aggregate(Min("id"))
+        if min_result["id__min"] is None:
+            process_decided_to_operator_decided_lock.release()
+            return
         if min_result["id__min"] > new_last_process_decided_id:
             new_last_process_decided_id = min_result["id__min"] + 10000
         now = datetime.datetime.now()
@@ -206,6 +216,7 @@ def sync_validator():
         validator, is_new = l_models.Validator.objects.get_or_create(public_key=validator_public_key)
         validator.owner_address = owner_address
         validator.operators.set(operator_list)
+        validator.save()
 
         # l_cluster.save_cluster(event)
 
@@ -270,21 +281,22 @@ def clear_data():
 @shared_task
 def update_operator_from_chain():
     operator_qs = l_models.Operator.objects.all()
-    contract = l_contract.get_contract()
+    view_contract = l_contract.get_view_contract()
     failed_count = 0
     for operator in operator_qs:
         try:
-            operator_info = contract.functions.operators(operator.id).call()
+            operator_info = view_contract.functions.getOperatorById(operator.id).call()
             operator.fee_human = operator_info[1] / 38264
             operator.validator_count = operator_info[2]
             operator.owner_address = operator_info[0]
-            operator.snapshot_index = operator_info[3][1]
+            # operator.snapshot_index = operator_info[3][1]
             operator.save()
             l_models.Account.objects.get_or_create(address=operator_info[0])
         except Exception as exc:
             logger.warning(f"update operator from chain error: operator_id {operator.id} exc: {exc}")
             failed_count += 1
-    return f"failed_count: {failed_count}"
+    if failed_count > 0:
+        raise Exception(f"failed_count: {failed_count}")
 
 
 @shared_task
