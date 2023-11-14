@@ -46,6 +46,7 @@ class Operator(models.Model):
     validator_count = models.IntegerField(default=0)
     fee_human = models.FloatField(default=0)
     snapshot_index = models.BigIntegerField(default=0)
+    # snapshot_block_number = models.BigIntegerField(default=0)
     performance_1day = models.FloatField(default=0)
     performance_1month = models.FloatField(default=0)
 
@@ -102,6 +103,8 @@ class Cluster(models.Model):
     last_sync_block_number = models.IntegerField(default=0)
     index = models.BigIntegerField(default=0)
     network_fee_index = models.BigIntegerField(default=0)
+
+    # cluster_info = models.TextField()
 
     class Meta:
         unique_together = (("owner", "operator_ids"), )

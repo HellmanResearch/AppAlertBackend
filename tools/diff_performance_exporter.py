@@ -2,7 +2,7 @@ import requests
 import pandas
 
 if __name__ == '__main__':
-    response = requests.get("https://api.ssv.network/api/v3/prater/operators/?page=1&perPage=1000")
+    response = requests.get("https://api.ssv.network/api/v4/mainnet/operators/?page=1&perPage=1000")
     data = response.json()
     exporter_operator_list = [{"id": item["id"], "name": item["name"], "exporter_performance": item["performance"]["24h"], "validators_count": item["validators_count"]} for item in data["operators"]]
 

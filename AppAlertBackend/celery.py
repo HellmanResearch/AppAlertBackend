@@ -94,6 +94,11 @@ app.conf.beat_schedule = {
     }
 }
 
+if settings.ENV == "LOCAL":
+    app.conf.beat_schedule["sync_cluster_from_events"] = {
+        'task': 'ssv.tasks.sync_cluster_from_events',
+        'schedule': 60 * 5
+    }
 
 # def metrics(environ, start_response):
 #     registry = CollectorRegistry()

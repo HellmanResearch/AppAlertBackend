@@ -252,6 +252,9 @@ def update_performance():
     total_decided_map = {item["operator_id"]: item["count"] for item in total_decided_qs}
     not_missed_decided_map = {item["operator_id"]: item["count"] for item in not_missed_decided_qs}
 
+    logger.debug(f"total_decided_map: {total_decided_map}")
+    logger.debug(f"not_missed_decided_map: {not_missed_decided_map}")
+
     for operator in l_models.Operator.objects.all():
         total_decided = total_decided_map.get(operator.id)
         not_missed_decided = not_missed_decided_map.get(operator.id)
@@ -286,7 +289,7 @@ def update_operator_from_chain():
     for operator in operator_qs:
         try:
             operator_info = view_contract.functions.getOperatorById(operator.id).call()
-            operator.fee_human = operator_info[1] / 38264
+            operator.fee_human = operator_info[1] / 382640000000
             operator.validator_count = operator_info[2]
             operator.owner_address = operator_info[0]
             # operator.snapshot_index = operator_info[3][1]
@@ -359,13 +362,17 @@ def update_operator_name():
 @shared_task
 def update_cluster_balance_est_days():
     cluster_qs = l_models.Cluster.objects.all()
-    contract = l_contract.get_contract()
     view_contract = l_contract.get_view_contract()
     network_fee = view_contract.functions.getNetworkFee().call()
-    minimum_blocks_before_liquidation = contract.functions.minimumBlocksBeforeLiquidation().call()
-    minimum_liquidation_collateral = contract.functions.minimumLiquidationCollateral().call()
+    minimum_blocks_before_liquidation = view_contract.functions.getLiquidationThresholdPeriod().call()
+    minimum_liquidation_collateral = view_contract.functions.getMinimumLiquidationCollateral().call()
     # if settings.ENV == "LOCAL":
     #     cluster_qs = cluster_qs.filter(owner="0xD1bA19ACa6A16C096ACF0B48E27Ffb8843b7FAd0")
+    failed_count = 0
+
+    if settings.ENV == "LOCAL":
+        cluster_qs = cluster_qs.filter(owner="0x62D5e17457fBD1EE453d2bd8bfB759EE4BAE568b")
+
     for cluster in cluster_qs:
         try:
             l_cluster.update_cluster_balance_est_days(
@@ -377,11 +384,16 @@ def update_cluster_balance_est_days():
             # l_cluster.update_cluster2(cluster, contract)
         except Exception as exc:
             logger.warning(f"update cluster {cluster.id} failed exc: {exc}")
+            failed_count += 1
+        else:
+            pass
+    if failed_count > 0:
+        raise Exception(f"failed_count: {failed_count}")
 
 
 @shared_task
 @l_utils.sync_event_start_end_block_number(key="last_sync_cluster_from_events",
-                                           init_start_block_number=settings.SSV_INIT_HEIGHT, interval=10000,
+                                           init_start_block_number=settings.SSV_INIT_HEIGHT, interval=100000,
                                            rpc_server_address=settings.ETH_URL)
 def sync_cluster_from_events(from_block_number: int, to_block_number: int):
     # from_block_number: int, to_block_number: int
@@ -399,11 +411,6 @@ def sync_cluster_from_events(from_block_number: int, to_block_number: int):
     log_list = w3.eth.get_logs(filter_params)
     for log in log_list:
         l_cluster.process_log(contract, log)
-        # with atomic():
-        #     tag = l_models.Tag.objects.get(key="last_update_cluster_from_events")
-        #     tag.value = str(log["blockNumber"])
-        #     tag.save()
-    pass
 
 
 @shared_task
