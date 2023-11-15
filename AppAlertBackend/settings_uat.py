@@ -3,7 +3,7 @@ from .settings import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ssv_alert_service_2',
+        'NAME': 'ssv_alert_service_3',
         'USER': 'root',
         'PASSWORD': 'wonders,1',
         'HOST': '127.0.0.1',
