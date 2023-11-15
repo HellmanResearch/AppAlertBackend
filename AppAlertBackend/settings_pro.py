@@ -33,3 +33,6 @@ CELERY_PROMETHEUS_PORT = 9019
 
 SSV_VIEW_ADDRESS = "0xafE830B6Ee262ba11cce5F32fDCd760FFE6a66e4"
 SSV_OPERATOR_BASE_URL = "https://api.ssv.network/api/v4/mainnet/operators/"
+
+DISCORD_PROXY = None
+

@@ -86,7 +86,7 @@ app.conf.beat_schedule = {
     },
     'sync_cluster_from_events': {
         'task': 'ssv.tasks.sync_cluster_from_events',
-        'schedule': 60 * 60
+        'schedule': 60 * 5
     },
     'update_validator': {
         'task': 'ssv.tasks.update_validator',
