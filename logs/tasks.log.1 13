@@ -1,2 +1,0 @@
-2023-11-07 09:40:43,372 [MainThread:140704641033856] [tasks:37] [tasks:update_rule] [INFO]- disabled 0 rule
-2023-11-07 09:40:43,536 [MainThread:140704641033856] [tasks:68] [tasks:update_rule_to_prometheus_and_reload] [INFO]- update 0 rules
